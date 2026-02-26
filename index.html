@@ -10,7 +10,8 @@
         
         body { 
             font-family: 'Inter', sans-serif; 
-            background-color: #f1f5f9;
+            background-color: #f8fafc;
+            color: #1e293b;
         }
 
         @media print {
@@ -25,8 +26,9 @@
                 padding: 4mm;
             }
             .section-header { 
-                background-color: #1f2937 !important; 
-                color: white !important; 
+                background-color: #f8fafc !important; 
+                color: #e11d48 !important; 
+                border-bottom: 2px solid #e11d48 !important;
                 -webkit-print-color-adjust: exact; 
                 print-color-adjust: exact;
             }
@@ -35,33 +37,31 @@
                 background: transparent !important; 
                 appearance: none;
             }
-            .accent-box { background-color: #fef2f2 !important; -webkit-print-color-adjust: exact; }
-            #gas-section.hidden { display: none !important; }
+            .device-section { display: none; }
+            .device-section.active { display: block !important; }
         }
 
         .section-header { 
-            background-color: #1f2937; 
-            color: white; 
-            padding: 3px 12px; 
-            font-weight: 800; 
+            background-color: #f1f5f9; 
+            color: #e11d48; 
+            padding: 4px 12px; 
+            font-weight: 900; 
             text-transform: uppercase; 
-            font-size: 9px; 
-            letter-spacing: 0.5px; 
+            font-size: 10px; 
+            letter-spacing: 0.8px; 
             border-left: 5px solid #e11d48; 
-            margin-top: 8px; 
-            margin-bottom: 5px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
+            margin-top: 12px; 
+            margin-bottom: 6px;
         }
 
         .input-field { 
             border: 1px solid #e2e8f0; 
-            padding: 2px 8px; 
+            padding: 2px 6px; 
             font-size: 11px; 
             width: 100%; 
-            border-radius: 3px; 
+            border-radius: 4px; 
             outline: none; 
+            background-color: #ffffff;
         }
 
         .label-text { 
@@ -74,188 +74,246 @@
         }
 
         .checkbox-custom {
-            width: 12px;
-            height: 12px;
+            width: 13px;
+            height: 13px;
             accent-color: #e11d48;
         }
 
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 30px;
-            height: 15px;
-        }
-        .switch input { opacity: 0; width: 0; height: 0; }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 20px;
-        }
-        .slider:before {
-            position: absolute; content: ""; height: 11px; width: 11px;
-            left: 2px; bottom: 2px; background-color: white;
-            transition: .4s; border-radius: 50%;
-        }
-        input:checked + .slider { background-color: #e11d48; }
-        input:checked + .slider:before { transform: translateX(15px); }
+        .device-section { display: none; }
+        .device-section.active { display: block; }
+
+        .measuring-table th { font-size: 8px; background: #f8fafc; padding: 4px; text-align: center; border: 1px solid #e2e8f0; }
+        .measuring-table td { border: 1px solid #e2e8f0; padding: 2px; }
+        .measuring-table input { text-align: center; font-weight: bold; font-size: 10px; }
     </style>
 </head>
 <body class="p-2 md:p-4">
 
-    <div class="page-container max-w-[900px] mx-auto bg-white shadow-2xl border-t-[8px] border-red-600 p-6 md:p-8 min-h-screen">
+    <div class="page-container max-w-[900px] mx-auto bg-white shadow-xl border-t-[8px] border-red-600 p-6 md:p-10 min-h-screen rounded-b-lg">
         
         <!-- HLAVIČKA FIRMY -->
-        <div class="flex flex-col md:flex-row justify-between items-start border-b-2 border-zinc-800 pb-3 mb-2">
-            <div class="flex gap-4">
+        <div class="flex flex-col md:flex-row justify-between items-start border-b border-zinc-200 pb-4 mb-3">
+            <div class="flex gap-5">
                 <div>
-                    <h1 class="text-red-600 font-[900] text-2xl italic leading-none tracking-tighter uppercase">SPEKTRA <span class="text-zinc-800 font-black">install</span></h1>
-                    <p class="text-[8px] font-bold uppercase tracking-[0.1em] text-zinc-400 mt-0.5 italic leading-none">Váš partner pre tepelné čerpadlá a kotly</p>
+                    <h1 class="text-red-600 font-[900] text-3xl italic leading-none tracking-tighter uppercase">SPEKTRA <span class="text-slate-700 font-black">install</span></h1>
+                    <p class="text-[9px] font-extrabold uppercase tracking-[0.1em] text-slate-400 mt-1 italic leading-none">Váš partner pre tepelné čerpadlá a kotly</p>
                 </div>
-                <div class="text-[8px] text-zinc-500 border-l pl-3 border-zinc-200 leading-tight">
-                    <p class="font-black text-zinc-800 uppercase text-[9px]">Spektra install s.r.o.</p>
+                <div class="text-[8.5px] text-slate-500 border-l pl-4 border-slate-200 leading-tight">
+                    <p class="font-black text-slate-700 uppercase text-[9.5px]">Spektra install s.r.o.</p>
                     <p>Prevádzka: Hollého 210, 015 01 Rajec</p>
                     <p>IČO: 535690036 | Email: spektrainstall@gmail.com</p>
-                    <p class="font-bold text-red-600 mt-1 uppercase tracking-tighter">Č. protokolu: <input type="text" class="bg-transparent border-none outline-none w-24 font-black" value="POZ2026001"></p>
+                    <div class="flex items-center gap-1 mt-1.5 font-bold text-red-600 uppercase tracking-tighter">
+                        <span>Č. protokolu:</span>
+                        <input type="text" class="bg-red-50 px-1 rounded border-none outline-none w-24 font-black text-red-700" value="POZ2026001">
+                    </div>
                 </div>
             </div>
-            <div class="text-right">
-                <h2 class="text-lg font-black uppercase text-zinc-800 tracking-tight leading-none">Protokol o odovzdaní zariadenia</h2>
-                <div class="mt-1 flex flex-col items-end gap-1">
-                    <div class="flex items-center gap-2 no-print">
-                        <span class="text-[7px] font-black text-zinc-400 uppercase italic">Bivalent (Plyn):</span>
-                        <label class="switch">
-                            <input type="checkbox" id="gasToggle" onchange="toggleGasSection()">
-                            <span class="slider"></span>
-                        </label>
+            <div class="text-right mt-3 md:mt-0">
+                <h2 class="text-lg font-black uppercase text-slate-800 tracking-tight leading-none">Protokol o odovzdaní</h2>
+                <div class="mt-2 flex flex-col items-end gap-1.5">
+                    <div class="flex flex-col items-end">
+                        <span class="text-[7.5px] font-bold text-slate-400 uppercase mb-0.5">Typ zariadenia</span>
+                        <select id="deviceSelector" onchange="updateDeviceView()" class="font-black text-red-600 border-2 border-red-600 rounded px-2 py-1 italic bg-white outline-none text-[12px] cursor-pointer shadow-sm">
+                            <option value="tc">Tepelné čerpadlo</option>
+                            <option value="plyn">Plynový kotol</option>
+                            <option value="elektro">Elektrický kotol</option>
+                            <option value="pelety">Peletový kotol</option>
+                        </select>
                     </div>
-                    <select class="font-bold text-red-600 border border-red-200 rounded px-1.5 py-0.5 italic bg-white outline-none text-[10px]">
-                        <option>Vaillant</option><option>Hyundai</option><option>Panasonic Aquarea</option>
-                        <option>Daikin Altherma</option><option>Viessmann Vitocal</option><option>Buderus / Bosch</option>
-                    </select>
                 </div>
             </div>
         </div>
 
         <form id="protocolForm">
-            <!-- 01. INFO -->
+            <!-- 01. VŠEOBECNÉ INFO -->
             <div class="section-header">01. Všeobecné informácie</div>
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-1.5 p-1">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-x-3 gap-y-2 p-1.5">
                 <div><label class="label-text">Dátum spustenia</label><input type="date" class="input-field" value="2026-02-21"></div>
-                <div class="md:col-span-2"><label class="label-text">Adresa inštalácie</label><input type="text" class="input-field" placeholder="Lokalita"></div>
-                <div><label class="label-text">Užívateľ</label><input type="text" class="input-field" placeholder="Meno"></div>
-                <div><label class="label-text">Kontakt</label><input type="text" class="input-field" placeholder="Telefón"></div>
-                <div><label class="label-text">Vonkajšia teplota</label><input type="text" class="input-field" placeholder="°C"></div>
+                <div class="md:col-span-2"><label class="label-text">Adresa inštalácie</label><input type="text" class="input-field" placeholder="Miesto realizácie"></div>
+                <div><label class="label-text">Zákazník</label><input type="text" class="input-field"></div>
+                <div><label class="label-text">Kontakt</label><input type="text" class="input-field"></div>
+                <div><label class="label-text">Značka / Výrobca</label><input type="text" class="input-field" placeholder="napr. Vaillant, Panasonic..."></div>
             </div>
 
-            <!-- 02. TČ JEDNOTKY -->
-            <div class="section-header">02. Špecifikácia jednotiek TČ</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-1">
-                <div class="bg-zinc-50 p-2 border border-zinc-200 rounded">
-                    <p class="text-red-600 font-black text-[8px] uppercase border-b border-red-100 mb-1">Vonkajšia jednotka</p>
-                    <div class="grid grid-cols-2 gap-2"><input type="text" placeholder="Model" class="input-field bg-white"><input type="text" placeholder="S/N" class="input-field bg-white"></div>
-                </div>
-                <div class="bg-zinc-50 p-2 border border-zinc-200 rounded">
-                    <p class="text-red-600 font-black text-[8px] uppercase border-b border-red-100 mb-1">Vnútorná jednotka</p>
-                    <div class="grid grid-cols-2 gap-2"><input type="text" placeholder="Model" class="input-field bg-white"><input type="text" placeholder="S/N" class="input-field bg-white"></div>
-                </div>
-            </div>
-
-            <!-- 02b. PLYN -->
-            <div id="gas-section" class="hidden"><div class="section-header">02b. Bivalentný plynový zdroj</div><div class="grid grid-cols-1 md:grid-cols-2 gap-3 p-1"><div class="bg-zinc-50 p-2 border border-red-100 rounded"><div class="grid grid-cols-2 gap-2"><div class="col-span-2"><label class="label-text">Model kotla</label><input type="text" class="input-field bg-white"></div><div><label class="label-text">Výkon (kW)</label><input type="text" class="input-field bg-white"></div><div><label class="label-text">S/N</label><input type="text" class="input-field bg-white"></div></div></div><div class="bg-zinc-50 p-2 border border-red-100 rounded text-[9px] font-bold uppercase space-y-1"><div class="flex justify-between border-b py-0.5"><span>Tesnosť (OK)</span> <input type="checkbox" class="checkbox-custom"></div><div class="flex justify-between border-b py-0.5"><span>Bivalentný bod</span> <input type="checkbox" class="checkbox-custom"></div></div></div></div>
-
-            <!-- 03. PRÍSLUŠENSTVO -->
-            <div class="section-header">03. Príslušenstvo <button type="button" onclick="addRow('mech-grid')" class="no-print bg-red-600 text-white text-[7px] px-1.5 py-0.5 rounded-full hover:bg-zinc-700 font-bold">+</button></div>
-            <div id="mech-grid" class="grid grid-cols-2 md:grid-cols-4 gap-2 p-1">
-                <div><label class="label-text">Nádrž TÚV</label><input type="text" class="input-field"></div>
-                <div><label class="label-text">Filter</label><input type="text" class="input-field" value="Magnetický"></div>
-                <div><label class="label-text">Expanzka</label><input type="text" class="input-field"></div>
-                <div><label class="label-text">3-cestný ventil</label><input type="text" class="input-field"></div>
-            </div>
-
-            <!-- 04. ELEKTRIKA -->
-            <div class="section-header">04. Merania a istenie elektro</div>
-            <div class="p-1 space-y-2">
-                <div class="flex items-center gap-2 bg-zinc-50 p-1.5 border rounded">
-                    <label class="label-text text-red-600 mb-0">Istenie TČ (Typ/Hodnota):</label>
-                    <input type="text" class="input-field bg-white font-bold" placeholder="napr. B25/3 + Prúdový chránič">
-                </div>
-                <table class="w-full text-[10px] text-left border border-zinc-200 rounded overflow-hidden">
-                    <thead class="bg-zinc-800 text-white uppercase text-[8px]"><tr><th class="p-1.5">Parameter</th><th class="p-1.5 text-center border-l border-zinc-700 italic">L1</th><th class="p-1.5 text-center border-l border-zinc-700 italic">L2</th><th class="p-1.5 text-center border-l border-zinc-700 italic">L3</th></tr></thead>
-                    <tbody class="divide-y divide-zinc-100 font-semibold">
-                        <tr><td class="p-1.5 bg-zinc-50 text-[8px] uppercase text-zinc-500">Napätie [V]</td><td class="p-1"><input type="number" class="w-full text-center outline-none bg-transparent" value="230"></td><td class="p-1"><input type="number" class="w-full text-center outline-none bg-transparent" value="230"></td><td class="p-1"><input type="number" class="w-full text-center outline-none bg-transparent" value="230"></td></tr>
-                        <tr><td class="p-1.5 bg-zinc-50 text-[8px] uppercase text-red-600">Prúd [A]</td><td class="p-1"><input type="number" step="0.1" class="w-full text-center outline-none bg-transparent text-red-600 font-bold" placeholder="0.0"></td><td class="p-1"><input type="number" step="0.1" class="w-full text-center outline-none bg-transparent text-red-600 font-bold" placeholder="0.0"></td><td class="p-1"><input type="number" step="0.1" class="w-full text-center outline-none bg-transparent text-red-600 font-bold" placeholder="0.0"></td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 05. PREVÁDZKA -->
-            <div class="section-header">05. Prevádzkové parametre (Test 15 min.)</div>
-            <div class="grid grid-cols-2 gap-3 p-1">
-                <table class="w-full text-[10px] border border-zinc-200 rounded overflow-hidden">
-                    <thead class="bg-zinc-700 text-white uppercase text-[8px]"><tr><th class="p-1.5" colspan="2">Teploty vody [°C]</th></tr></thead>
-                    <tbody>
-                        <tr class="border-b"><td class="p-1.5 bg-zinc-50 uppercase text-[8px]">Vstup</td><td class="p-1"><input type="text" class="w-full text-right outline-none font-bold" placeholder="°C"></td></tr>
-                        <tr><td class="p-1.5 bg-zinc-50 uppercase text-[8px]">Výstup</td><td class="p-1"><input type="text" class="w-full text-right outline-none font-bold" placeholder="°C"></td></tr>
-                    </tbody>
-                </table>
-                <table class="w-full text-[10px] border border-zinc-200 rounded overflow-hidden">
-                    <thead class="bg-zinc-700 text-white uppercase text-[8px]"><tr><th class="p-1.5" colspan="2">Tlaky chladiva [bar]</th></tr></thead>
-                    <tbody>
-                        <tr class="border-b"><td class="p-1.5 bg-zinc-50 text-red-600 uppercase text-[8px]">Vysoký (HP)</td><td class="p-1"><input type="text" class="w-full text-right outline-none font-bold text-red-600" placeholder="bar"></td></tr>
-                        <tr><td class="p-1.5 bg-zinc-50 text-red-600 uppercase text-[8px]">Nízky (LP)</td><td class="p-1"><input type="text" class="w-full text-right outline-none font-bold text-red-600" placeholder="bar"></td></tr>
-                    </tbody>
-                </table>
-            </div>
-
-            <!-- 06. REVÍZIA -->
-            <div class="section-header">06. Skúšky a vzdialená správa</div>
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-1.5 p-1 text-[9px] font-bold uppercase">
-                <div class="flex justify-between items-center border-b pb-0.5"><span>Skúška dusíkom</span> <input type="checkbox" class="checkbox-custom" checked></div>
-                <div class="flex justify-between items-center border-b pb-0.5"><span>Vákuovanie [bar]</span> <input type="text" class="w-12 text-right outline-none text-red-600"></div>
-                <div class="flex justify-between items-center border-b pb-0.5 text-red-600 font-black italic"><span>Smart Cloud pripojený</span> <span class="text-[7px]">LAN <input type="radio" name="cloud" checked> / WIFI <input type="radio" name="cloud"></span></div>
-                <div class="flex justify-between items-center border-b pb-0.5 text-red-600 font-black italic"><span>Service Cloud (Dohľad)</span> <input type="checkbox" class="checkbox-custom" checked></div>
-            </div>
-
-            <!-- 07. PREHLÁSENIE S CERTIFIKÁTMI -->
-            <div class="mt-4 p-3 border border-red-600 bg-red-50 rounded-md accent-box">
-                <div class="flex justify-between items-start border-b border-red-200 pb-1 mb-2">
-                    <h3 class="text-[10px] font-[900] uppercase text-red-600 italic tracking-widest">Prehlásenie a odborná spôsobilosť</h3>
-                </div>
-                <p class="text-[8px] leading-tight text-zinc-800 italic mb-3">
-                    Potvrdzujeme, že zariadenie bolo odovzdané ako celok (chladiaca a elektro časť) podľa noriem **STN EN 378** a **STN 33 2000-6**. Inštalácia je **plne funkčná**, schopná bezpečnej prevádzky a užívateľ bol zaškolený.
-                </p>
+            <!-- SEKCIA: TEPELNÉ ČERPADLO -->
+            <div id="section-tc" class="device-section active">
+                <div class="section-header">02. Merania a Technické údaje - Tepelné čerpadlo</div>
                 
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3 bg-white/50 p-2 border border-red-100 rounded">
-                    <div class="flex flex-col"><span class="text-[7px] font-black text-zinc-400 uppercase leading-none">Chladiar (ID certifikát):</span><span class="text-[10px] font-black text-zinc-800 tracking-tighter italic">10637</span></div>
-                    <div class="flex flex-col"><span class="text-[7px] font-black text-zinc-400 uppercase leading-none">Elektro (§22 č.o.):</span><span class="text-[10px] font-black text-zinc-800 tracking-tighter italic">18122868</span></div>
-                    <div class="flex flex-col"><span class="text-[7px] font-black text-zinc-400 uppercase leading-none">Oprávnenie plyn:</span><span class="text-[9px] font-black text-zinc-800 tracking-tight leading-none">077/2/2021-PZ-S,O (OU,R,M)-Bd,f,g,h</span></div>
+                <div class="grid grid-cols-2 gap-4 p-1.5 mb-2">
+                    <div class="bg-slate-50 p-2 rounded border">
+                        <label class="label-text">Vonkajšia j. (Model / Sériové číslo)</label>
+                        <input type="text" class="input-field font-bold">
+                    </div>
+                    <div class="bg-slate-50 p-2 rounded border">
+                        <label class="label-text">Vnútorná j. (Model / Sériové číslo)</label>
+                        <input type="text" class="input-field font-bold">
+                    </div>
+                </div>
+
+                <!-- Tabuľka Napätí -->
+                <div class="p-1.5">
+                    <label class="label-text text-red-600 mb-1">Elektrické meranie napätia (V)</label>
+                    <table class="w-full measuring-table text-xs">
+                        <thead>
+                            <tr>
+                                <th rowspan="2">Stav zariadenia</th>
+                                <th colspan="3">Medzi fázami (V)</th>
+                                <th colspan="3">Fáza voči Nule (V)</th>
+                            </tr>
+                            <tr>
+                                <th>L1/L2</th>
+                                <th>L2/L3</th>
+                                <th>L3/L1</th>
+                                <th>L1/N</th>
+                                <th>L2/N</th>
+                                <th>L3/N</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td class="p-1 font-bold bg-slate-50">Zariadenie vypnuté</td>
+                                <td><input type="text" class="w-full bg-transparent"></td>
+                                <td><input type="text" class="w-full bg-transparent"></td>
+                                <td><input type="text" class="w-full bg-transparent"></td>
+                                <td><input type="text" class="w-full bg-transparent"></td>
+                                <td><input type="text" class="w-full bg-transparent"></td>
+                                <td><input type="text" class="w-full bg-transparent"></td>
+                            </tr>
+                            <tr>
+                                <td class="p-1 font-bold bg-slate-50">Po 15 min. prevádzky</td>
+                                <td><input type="text" class="w-full bg-transparent text-red-600"></td>
+                                <td><input type="text" class="w-full bg-transparent text-red-600"></td>
+                                <td><input type="text" class="w-full bg-transparent text-red-600"></td>
+                                <td><input type="text" class="w-full bg-transparent text-red-600"></td>
+                                <td><input type="text" class="w-full bg-transparent text-red-600"></td>
+                                <td><input type="text" class="w-full bg-transparent text-red-600"></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Prúd a Iné merania -->
+                <div class="grid grid-cols-2 gap-4 p-1.5 mt-2">
+                    <div class="bg-slate-50 p-2 rounded border">
+                        <label class="label-text">Prevádzkový prúd (A)</label>
+                        <div class="grid grid-cols-3 gap-2">
+                            <div><label class="text-[7px]">L1</label><input type="text" class="input-field text-center font-bold text-red-600"></div>
+                            <div><label class="text-[7px]">L2</label><input type="text" class="input-field text-center font-bold text-red-600"></div>
+                            <div><label class="text-[7px]">L3</label><input type="text" class="input-field text-center font-bold text-red-600"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-2 rounded border">
+                        <label class="label-text">Chladivový okruh (Tlaky bar)</label>
+                        <div class="grid grid-cols-2 gap-2">
+                            <div><label class="text-[7px]">Vysoký (HP)</label><input type="text" class="input-field text-center font-bold"></div>
+                            <div><label class="text-[7px]">Nízky (LP)</label><input type="text" class="input-field text-center font-bold"></div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- 08. PODPISY -->
-            <div class="mt-8 grid grid-cols-2 gap-16 md:gap-32 text-center pb-4">
-                <div><div class="border-b border-zinc-800 h-8 mb-1"></div><p class="text-[7px] font-black uppercase text-zinc-400 italic">Podpis užívateľa</p></div>
-                <div><div class="border-b border-red-600 h-8 mb-1 flex items-center justify-center font-black text-red-600 tracking-tighter italic opacity-40 text-sm italic">Spektra install</div><p class="text-[7px] font-black uppercase text-red-600 italic">Podpis technika</p></div>
+            <!-- SEKCIA: PLYNOVÝ KOTOL -->
+            <div id="section-plyn" class="device-section">
+                <div class="section-header">02. Analýza spalín a Tlaky - Plynový kotol</div>
+                <div class="grid grid-cols-2 gap-4 p-1.5">
+                    <div class="bg-slate-50 p-2 rounded border"><label class="label-text">Model a Sériové číslo</label><input type="text" class="input-field font-bold"></div>
+                    <div class="bg-slate-50 p-2 rounded border"><label class="label-text">Výkon kotla (kW)</label><input type="text" class="input-field text-center font-bold"></div>
+                </div>
+                <div class="grid grid-cols-3 gap-4 p-1.5 mt-2">
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">O2 v spalinách (%)</label><input type="text" class="input-field"></div>
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">CO2 v spalinách (%)</label><input type="text" class="input-field font-bold text-red-600"></div>
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">CO (ppm)</label><input type="text" class="input-field"></div>
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">Tlak plynu stat. (mbar)</label><input type="text" class="input-field"></div>
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">Tlak plynu dyn. (mbar)</label><input type="text" class="input-field"></div>
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">Teplota spalín (°C)</label><input type="text" class="input-field"></div>
+                </div>
             </div>
 
-            <div class="mt-6 no-print flex justify-center"><button type="button" onclick="window.print()" class="bg-red-600 text-white px-10 py-3 rounded-full font-black text-xs shadow-lg hover:bg-zinc-800 transition-all uppercase tracking-widest">Vytlačiť protokol (PDF)</button></div>
+            <!-- SEKCIA: ELEKTRICKÝ KOTOL -->
+            <div id="section-elektro" class="device-section">
+                <div class="section-header">02. Elektrické zaťaženie - Elektrický kotol</div>
+                <div class="grid grid-cols-3 gap-4 p-1.5 mt-2">
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">Prúd L1 (A)</label><input type="text" class="input-field font-bold text-red-600 text-center"></div>
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">Prúd L2 (A)</label><input type="text" class="input-field font-bold text-red-600 text-center"></div>
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">Prúd L3 (A)</label><input type="text" class="input-field font-bold text-red-600 text-center"></div>
+                </div>
+            </div>
+
+            <!-- SEKCIA: PELETOVÝ KOTOL -->
+            <div id="section-pelety" class="device-section">
+                <div class="section-header">02. Nastavenie a spaľovanie - Peletový kotol</div>
+                <div class="grid grid-cols-3 gap-4 p-1.5 mt-2 text-[10px]">
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">Dávkovanie podávača (%)</label><input type="text" class="input-field text-center"></div>
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">Otáčky ventilátora (%)</label><input type="text" class="input-field text-center"></div>
+                    <div class="bg-slate-50 p-2 border rounded"><label class="label-text">Účinnosť spaľovania (%)</label><input type="text" class="input-field font-bold text-red-600 text-center"></div>
+                </div>
+            </div>
+
+            <!-- SPOLOČNÁ ELEKTRIKA A ISTENIE -->
+            <div class="section-header">03. Elektroinštalácia, Káble a Hydraulika</div>
+            <div class="p-1.5 grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="space-y-2">
+                    <div class="bg-slate-50 p-2 border rounded">
+                        <label class="label-text text-red-600 mb-0 font-black">Istenie (Presné označenie ističa):</label>
+                        <input type="text" class="input-field border-red-100" placeholder="napr. B25/3 + Prúdový chránič">
+                    </div>
+                    <div class="bg-slate-50 p-2 border rounded">
+                        <label class="label-text">Typ a prierez napájacieho kábla:</label>
+                        <input type="text" class="input-field" placeholder="napr. CYKY-J 5x2,5">
+                    </div>
+                </div>
+                <div class="space-y-2">
+                    <div class="bg-slate-50 p-2 border rounded">
+                        <label class="label-text">Typ a prierez komunikačného kábla:</label>
+                        <input type="text" class="input-field" placeholder="napr. LiYCY 2x0,75">
+                    </div>
+                    <div class="bg-slate-50 p-2 border rounded flex items-center justify-between">
+                        <label class="label-text text-slate-500 mb-0">Magnetický filter namontovaný:</label>
+                        <span class="text-[9px] font-bold">ÁNO <input type="checkbox" checked class="checkbox-custom ml-1"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- REVÍZIA A CERTIFIKÁTY -->
+            <div class="section-header">04. Skúšky a Odborná spôsobilosť</div>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-1.5 text-[9.5px] font-bold uppercase text-slate-600">
+                <div class="flex justify-between items-center border-b pb-1"><span>Tlaková skúška systému (Dusíkom)</span> <input type="checkbox" class="checkbox-custom" checked></div>
+                <div class="flex justify-between items-center border-b pb-1"><span>Vákuovanie okruhu (Úspešné)</span> <input type="checkbox" class="checkbox-custom" checked></div>
+            </div>
+
+            <div class="mt-4 p-4 border border-red-100 bg-red-50 rounded-lg relative">
+                <h3 class="text-[10px] font-black uppercase text-red-600 italic mb-1.5 border-b border-red-200 pb-1 underline">Prehlásenie o bezpečnej prevádzke</h3>
+                <p class="text-[8.5px] leading-snug text-slate-700 italic mb-3">
+                    Zariadenie bolo odovzdané ako funkčný celok podľa noriem **STN EN 378**, **STN 33 2000-6** a **STN EN 1775**. Je schopné bezpečnej prevádzky a užívateľ bol zaškolený do obsluhy.
+                </p>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
+                    <div class="bg-white/70 p-2 rounded border border-red-100"><span class="label-text">Chladiar (Certificate ID):</span><span class="text-[10px] font-black italic">10637</span></div>
+                    <div class="bg-white/70 p-2 rounded border border-red-100"><span class="label-text">Elektro §22:</span><span class="text-[10px] font-black italic">18122868</span></div>
+                    <div class="bg-white/70 p-2 rounded border border-red-100"><span class="label-text">Plyn:</span><span class="text-[8.5px] font-black tracking-tighter italic leading-none">077/2/2021-PZ-S,O-Bd,f,g,h</span></div>
+                </div>
+            </div>
+
+            <!-- PODPISY -->
+            <div class="mt-10 grid grid-cols-2 gap-16 md:gap-32 text-center pb-6">
+                <div><div class="border-b border-slate-300 h-10 mb-2"></div><p class="text-[7.5px] font-black uppercase text-slate-400">Podpis užívateľa</p></div>
+                <div><div class="border-b border-red-600 h-10 mb-2 font-black text-red-600 italic uppercase">Spektra install</div><p class="text-[7.5px] font-black uppercase text-red-600 italic">Podpis technika</p></div>
+            </div>
+
+            <div class="mt-8 no-print flex justify-center">
+                <button type="button" onclick="window.print()" class="bg-red-600 text-white px-12 py-3.5 rounded-full font-black text-xs shadow-lg hover:bg-slate-800 transition-all transform hover:scale-105 uppercase tracking-widest">
+                    Vytlačiť protokol (PDF)
+                </button>
+            </div>
         </form>
     </div>
-    <footer class="mt-4 mb-8 text-center text-zinc-400 text-[7px] font-black uppercase no-print tracking-[0.2em]">Spektra install v2.6 | Rajec | &copy; 2026</footer>
+    
+    <footer class="mt-6 mb-12 text-center text-slate-400 text-[7.5px] font-black uppercase no-print tracking-[0.4em]">Spektra install v3.1 | Rajec | &copy; 2026</footer>
+    
     <script>
-        function addRow(containerId) {
-            const container = document.getElementById(containerId);
-            const div = document.createElement('div');
-            div.innerHTML = '<label class="label-text">Iné</label><input type="text" class="input-field bg-red-50 border-red-100">';
-            container.appendChild(div);
-        }
-        function toggleGasSection() {
-            const checkbox = document.getElementById('gasToggle');
-            const section = document.getElementById('gas-section');
-            if (checkbox.checked) section.classList.remove('hidden'); else section.classList.add('hidden');
+        function updateDeviceView() {
+            const selected = document.getElementById('deviceSelector').value;
+            document.querySelectorAll('.device-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('section-' + selected).classList.add('active');
         }
     </script>
 </body>
