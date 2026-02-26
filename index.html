@@ -113,7 +113,6 @@
             padding-right: 2.5rem;
         }
 
-        /* Toast notifications */
         #toast {
             visibility: hidden;
             min-width: 250px;
@@ -154,7 +153,12 @@
                     <p>IČO: 535690036 | Email: spektrainstall@gmail.com</p>
                     <div class="flex items-center gap-1 mt-2 font-bold text-red-600 uppercase tracking-tighter">
                         <span>Č. protokolu:</span>
-                        <input type="text" id="protocolId" class="bg-red-50 px-2 py-1 rounded border-none outline-none w-32 font-black text-red-700 text-sm md:text-base" value="POZ2026001">
+                        <div class="flex items-center bg-red-50 rounded-md overflow-hidden px-2 py-1">
+                            <input type="text" id="protocolId" class="bg-transparent border-none outline-none w-24 md:w-32 font-black text-red-700 text-sm md:text-base" value="POZ2026001">
+                            <button type="button" id="btnLoad" class="no-print p-1 hover:bg-red-200 rounded transition-colors" title="Načítať do editora">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -250,7 +254,7 @@
                 </div>
             </div>
 
-            <!-- SEKCIE OSTATNÝCH ZARIADENÍ (Zjednodušené pre Cloud demo) -->
+            <!-- SEKCIE OSTATNÝCH -->
             <div id="section-plyn" class="device-section">
                 <div class="section-header">02. Analýza - Plynový kotol</div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-1.5">
@@ -289,9 +293,9 @@
                     Zariadenie odovzdané ako funkčný celok podľa STN EN 378 a STN 33 2000-6. Užívateľ zaškolený.
                 </p>
                 <div class="grid grid-cols-3 gap-2">
-                    <div class="bg-white p-2 rounded border text-[10px] font-bold">Chladiar: 10637</div>
-                    <div class="bg-white p-2 rounded border text-[10px] font-bold">Elektro: 18122868</div>
-                    <div class="bg-white p-2 rounded border text-[10px] font-bold tracking-tighter">Plyn: 077/2/2021</div>
+                    <div class="bg-white p-2 rounded border text-[10px] font-bold text-center">Chladiar: 10637</div>
+                    <div class="bg-white p-2 rounded border text-[10px] font-bold text-center">Elektro: 18122868</div>
+                    <div class="bg-white p-2 rounded border text-[10px] font-bold tracking-tighter text-center">Plyn: 077/2/2021</div>
                 </div>
             </div>
 
@@ -315,29 +319,29 @@
 
             <!-- OVLÁDACIE PRVKY -->
             <div class="mt-16 no-print flex flex-col items-center gap-4">
-                <div class="flex flex-col md:flex-row gap-3 w-full justify-center">
-                    <button type="button" id="btnSave" class="bg-zinc-800 text-white px-10 py-5 rounded-full font-[900] text-sm shadow-xl hover:bg-black transition-all transform active:scale-95 uppercase tracking-widest flex items-center gap-2">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" /><path d="M9 13h2v5a1 1 0 11-2 0v-5z" /></svg>
+                <div class="flex flex-col md:flex-row gap-3 w-full justify-center px-4">
+                    <button type="button" id="btnSave" class="bg-zinc-800 text-white px-8 py-4 rounded-full font-[900] text-sm shadow-xl hover:bg-black transition-all transform active:scale-95 uppercase tracking-widest flex items-center justify-center gap-2">
                         Uložiť do cloudu
                     </button>
-                    <button type="button" onclick="window.print()" class="bg-red-600 text-white px-10 py-5 rounded-full font-[900] text-sm shadow-xl hover:bg-red-700 transition-all transform active:scale-95 uppercase tracking-widest">
-                        Vytlačiť do PDF
+                    <button type="button" id="btnArchivePreview" class="bg-amber-100 text-amber-800 border border-amber-300 px-8 py-4 rounded-full font-[900] text-sm shadow hover:bg-amber-200 transition-all transform active:scale-95 uppercase tracking-widest flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 8h14M5 8a2 2 0 110-4h14a2 2 0 110 4M5 8v10a2 2 0 002 2h10a2 2 0 002-2V8m-9 4h4" /></svg>
+                        Otvoriť z archívu v novom okne
+                    </button>
+                    <button type="button" onclick="window.print()" class="bg-red-600 text-white px-8 py-4 rounded-full font-[900] text-sm shadow-xl hover:bg-red-700 transition-all transform active:scale-95 uppercase tracking-widest">
+                        Vytlačiť rozpracované
                     </button>
                 </div>
-                <p class="text-[9px] text-slate-400 uppercase font-black tracking-[0.2em]">Spektra Install Cloud Sync</p>
             </div>
         </form>
     </div>
     
-    <footer class="mt-10 mb-20 text-center text-slate-400 text-[8px] font-black uppercase no-print tracking-[0.4em]">Spektra v3.4 Cloud | &copy; 2026</footer>
+    <footer class="mt-10 mb-20 text-center text-slate-400 text-[8px] font-black uppercase no-print tracking-[0.4em]">Spektra v3.7 Archive Ready | &copy; 2026</footer>
 
-    <!-- Firebase SDKs -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        // Global variables provided by environment
         const firebaseConfig = JSON.parse(__firebase_config);
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
@@ -346,7 +350,6 @@
 
         let currentUser = null;
 
-        // AUTH INITIALIZATION
         const initAuth = async () => {
             try {
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
@@ -355,34 +358,24 @@
                     await signInAnonymously(auth);
                 }
             } catch (error) {
-                console.error("Auth error", error);
-                showToast("Chyba pripojenia k cloudu.");
+                showToast("Chyba cloudu.");
             }
         };
 
-        onAuthStateChanged(auth, (user) => {
-            currentUser = user;
-            if (user) {
-                console.log("Logged in as:", user.uid);
-            }
-        });
-
+        onAuthStateChanged(auth, (user) => { currentUser = user; });
         initAuth();
 
-        // SIGNATURE PADS
         const pads = {};
         function initPad(id) {
             const canvas = document.getElementById(id);
             const ctx = canvas.getContext('2d');
             let drawing = false;
-            ctx.strokeStyle = "#1e293b";
-            ctx.lineWidth = 3;
-            ctx.lineCap = "round";
+            ctx.strokeStyle = "#1e293b"; ctx.lineWidth = 3; ctx.lineCap = "round";
 
             const getPos = (e) => {
                 const rect = canvas.getBoundingClientRect();
-                const x = (e.clientX || e.touches[0].clientX) - rect.left;
-                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                const x = (e.clientX || (e.touches && e.touches[0].clientX)) - rect.left;
+                const y = (e.clientY || (e.touches && e.touches[0].clientY)) - rect.top;
                 return { x, y };
             };
 
@@ -407,63 +400,171 @@
             pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
         };
 
-        initPad('customerSignature');
-        initPad('technicianSignature');
+        window.onload = () => {
+            initPad('customerSignature');
+            initPad('technicianSignature');
+        };
 
-        // CLOUD SAVING
+        // SAVE
         document.getElementById('btnSave').onclick = async () => {
-            if (!currentUser) {
-                showToast("Čakám na pripojenie...");
-                return;
-            }
-
+            if (!currentUser) return showToast("Čakám na pripojenie...");
             const pId = document.getElementById('protocolId').value.trim();
-            if (!pId) {
-                showToast("Zadajte číslo protokolu!");
-                return;
-            }
+            if (!pId) return showToast("Zadajte číslo protokolu!");
 
             showToast("Ukladám...");
-
-            // Collect all inputs
             const data = {
-                metadata: {
-                    protocolId: pId,
-                    type: document.getElementById('deviceSelector').value,
-                    timestamp: new Date().toISOString(),
-                    savedBy: currentUser.uid
-                },
-                content: {}
+                metadata: { protocolId: pId, type: document.getElementById('deviceSelector').value, timestamp: new Date().toISOString(), savedBy: currentUser.uid },
+                content: {},
+                signatures: {
+                    customer: document.getElementById('customerSignature').toDataURL(),
+                    technician: document.getElementById('technicianSignature').toDataURL()
+                }
             };
 
-            // Scrape all inputs with IDs
             document.querySelectorAll('input, select, textarea').forEach(el => {
                 if (el.id && el.id !== 'protocolId') {
                     data.content[el.id] = el.type === 'checkbox' ? el.checked : el.value;
                 }
             });
 
-            // Scrape signatures
-            data.signatures = {
-                customer: document.getElementById('customerSignature').toDataURL(),
-                technician: document.getElementById('technicianSignature').toDataURL()
-            };
-
             try {
-                // RULE 1: Strict Path
                 const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'protocols', pId);
                 await setDoc(docRef, data);
-                showToast("✅ Protokol uložený do cloudu!");
+                showToast("✅ Uložené do archívu!");
             } catch (e) {
-                console.error(e);
                 showToast("❌ Chyba pri ukladaní.");
             }
         };
 
+        // LOAD TO EDITOR (Magnifying glass)
+        document.getElementById('btnLoad').onclick = async () => {
+            const data = await fetchFromCloud();
+            if (data) {
+                applyDataToForm(data);
+                showToast("✅ Načítané do editora!");
+            }
+        };
+
+        // OPEN ARCHIVE IN NEW WINDOW
+        document.getElementById('btnArchivePreview').onclick = async () => {
+            const data = await fetchFromCloud();
+            if (data) {
+                openDataInNewWindow(data);
+            }
+        };
+
+        async function fetchFromCloud() {
+            if (!currentUser) { showToast("Čakám na pripojenie..."); return null; }
+            const pId = document.getElementById('protocolId').value.trim();
+            if (!pId) { showToast("Zadajte ID protokolu!"); return null; }
+
+            showToast("Vyhľadávam v archíve...");
+            try {
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'protocols', pId);
+                const docSnap = await getDoc(docRef);
+                if (docSnap.exists()) {
+                    return docSnap.data();
+                } else {
+                    showToast("❌ Protokol v archíve neexistuje.");
+                    return null;
+                }
+            } catch (e) {
+                showToast("❌ Chyba pripojenia.");
+                return null;
+            }
+        }
+
+        function applyDataToForm(data) {
+            document.getElementById('deviceSelector').value = data.metadata.type;
+            updateDeviceView();
+            for (const [id, value] of Object.entries(data.content)) {
+                const el = document.getElementById(id);
+                if (el) {
+                    if (el.type === 'checkbox') el.checked = value;
+                    else el.value = value;
+                }
+            }
+            if (data.signatures) {
+                restoreSignature('customerSignature', data.signatures.customer);
+                restoreSignature('technicianSignature', data.signatures.technician);
+            }
+        }
+
+        function openDataInNewWindow(data) {
+            // We create a temporary hidden container to render the data safely
+            const tempDiv = document.createElement('div');
+            tempDiv.style.display = 'none';
+            document.body.appendChild(tempDiv);
+            
+            // Clone current UI structure
+            tempDiv.innerHTML = document.querySelector('.page-container').outerHTML;
+            const container = tempDiv.querySelector('.page-container');
+
+            // Apply data to the cloned HTML
+            container.querySelector('#protocolId').value = data.metadata.protocolId;
+            container.querySelector('#deviceSelector').value = data.metadata.type;
+            
+            // Set device sections
+            container.querySelectorAll('.device-section').forEach(s => s.classList.remove('active'));
+            container.querySelector('#section-' + data.metadata.type).classList.add('active');
+
+            // Apply contents
+            for (const [id, value] of Object.entries(data.content)) {
+                const el = container.querySelector('#' + id);
+                if (el) {
+                    if (el.type === 'checkbox') { if(value) el.setAttribute('checked', 'checked'); else el.removeAttribute('checked'); }
+                    else el.setAttribute('value', value);
+                }
+            }
+
+            // Replace canvases with images
+            const custImg = `<img src="${data.signatures.customer}" style="width:100%; border:1px solid #e2e8f0; border-radius:8px;">`;
+            const techImg = `<img src="${data.signatures.technician}" style="width:100%; border:1px solid #e2e8f0; border-radius:8px;">`;
+            container.innerHTML = container.innerHTML.replace(/<canvas id="customerSignature"[^>]*><\/canvas>/i, custImg);
+            container.innerHTML = container.innerHTML.replace(/<canvas id="technicianSignature"[^>]*><\/canvas>/i, techImg);
+
+            const finalHtml = container.outerHTML;
+            tempDiv.remove();
+
+            const newWin = window.open('', '_blank');
+            newWin.document.write(`
+                <!DOCTYPE html>
+                <html lang="sk">
+                <head>
+                    <title>Archív: ${data.metadata.protocolId} - Spektra install</title>
+                    ${document.head.innerHTML}
+                    <style>
+                        .no-print { display: none !important; }
+                        body { background: white; padding: 20px; }
+                        .page-container { box-shadow: none !important; border: 1px solid #eee !important; margin: 0 auto !important; }
+                        input, select, textarea { border: none !important; background: transparent !important; color: black !important; -webkit-text-fill-color: black; opacity: 1; }
+                    </style>
+                </head>
+                <body>
+                    ${finalHtml}
+                    <script>
+                        document.querySelectorAll('input, select, textarea').forEach(el => el.disabled = true);
+                    <\/script>
+                </body>
+                </html>
+            `);
+            newWin.document.close();
+        }
+
+        function restoreSignature(id, dataUrl) {
+            const canvas = document.getElementById(id);
+            const ctx = canvas.getContext('2d');
+            const img = new Image();
+            img.onload = () => {
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                ctx.drawImage(img, 0, 0);
+            };
+            img.src = dataUrl;
+        }
+
         function showToast(msg) {
             const x = document.getElementById("toast");
-            x.innerHTML = msg;
-            x.className = "show";
+            x.innerHTML = msg; x.className = "show";
             setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
         }
 
