@@ -56,7 +56,6 @@
             margin-bottom: 8px;
         }
 
-        /* Väčšie polia pre mobil (min 16px zabráni auto-zoomu na iOS) */
         .input-field { 
             border: 1px solid #e2e8f0; 
             padding: 8px 10px; 
@@ -87,10 +86,6 @@
             accent-color: #e11d48;
         }
 
-        @media (min-width: 768px) {
-            .checkbox-custom { width: 14px; height: 14px; }
-        }
-
         .device-section { display: none; }
         .device-section.active { display: block; }
 
@@ -98,12 +93,6 @@
         .measuring-table td { border: 1px solid #e2e8f0; padding: 4px; }
         .measuring-table input { text-align: center; font-weight: bold; font-size: 14px; width: 100%; }
 
-        @media (min-width: 768px) {
-            .measuring-table input { font-size: 11px; }
-            .measuring-table th { font-size: 8px; padding: 4px; }
-        }
-
-        /* Podpisová plocha */
         .signature-pad {
             border: 2px solid #e2e8f0;
             background-color: #ffffff;
@@ -114,11 +103,6 @@
             border-radius: 8px;
         }
 
-        @media (min-width: 768px) {
-            .signature-pad { height: 120px; border-width: 1px; }
-        }
-
-        /* Prispôsobenie selectu */
         #deviceSelector {
             -webkit-appearance: none;
             appearance: none;
@@ -128,9 +112,32 @@
             background-size: 1em;
             padding-right: 2.5rem;
         }
+
+        /* Toast notifications */
+        #toast {
+            visibility: hidden;
+            min-width: 250px;
+            background-color: #334155;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 100;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            font-size: 14px;
+            font-weight: bold;
+        }
+        #toast.show { visibility: visible; animation: fadein 0.5s, fadeout 0.5s 2.5s; }
+        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadeout { from {bottom: 30px; opacity: 1;} to {bottom: 0; opacity: 0;} }
     </style>
 </head>
 <body class="p-0 md:p-4">
+
+    <div id="toast">Správa</div>
 
     <div class="page-container max-w-[900px] mx-auto bg-white shadow-xl border-t-[8px] border-red-600 p-4 md:p-10 min-h-screen rounded-b-lg">
         
@@ -147,7 +154,7 @@
                     <p>IČO: 535690036 | Email: spektrainstall@gmail.com</p>
                     <div class="flex items-center gap-1 mt-2 font-bold text-red-600 uppercase tracking-tighter">
                         <span>Č. protokolu:</span>
-                        <input type="text" class="bg-red-50 px-2 py-1 rounded border-none outline-none w-32 font-black text-red-700 text-sm md:text-base" value="POZ2026001">
+                        <input type="text" id="protocolId" class="bg-red-50 px-2 py-1 rounded border-none outline-none w-32 font-black text-red-700 text-sm md:text-base" value="POZ2026001">
                     </div>
                 </div>
             </div>
@@ -169,11 +176,11 @@
             <!-- 01. VŠEOBECNÉ INFO -->
             <div class="section-header">01. Všeobecné informácie</div>
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-1.5">
-                <div><label class="label-text">Dátum spustenia</label><input type="date" class="input-field" value="2026-02-21"></div>
-                <div class="md:col-span-2"><label class="label-text">Adresa inštalácie</label><input type="text" class="input-field" placeholder="Miesto realizácie"></div>
-                <div><label class="label-text">Meno Zákazníka</label><input type="text" class="input-field"></div>
-                <div><label class="label-text">Telefónny kontakt</label><input type="tel" class="input-field"></div>
-                <div><label class="label-text">Značka / Výrobca</label><input type="text" class="input-field" placeholder="napr. Vaillant"></div>
+                <div><label class="label-text">Dátum spustenia</label><input type="date" id="date" class="input-field" value="2026-02-21"></div>
+                <div class="md:col-span-2"><label class="label-text">Adresa inštalácie</label><input type="text" id="address" class="input-field" placeholder="Miesto realizácie"></div>
+                <div><label class="label-text">Meno Zákazníka</label><input type="text" id="customerName" class="input-field"></div>
+                <div><label class="label-text">Telefónny kontakt</label><input type="tel" id="customerPhone" class="input-field"></div>
+                <div><label class="label-text">Značka / Výrobca</label><input type="text" id="manufacturer" class="input-field" placeholder="napr. Vaillant"></div>
             </div>
 
             <!-- SEKCIA: TEPELNÉ ČERPADLO -->
@@ -183,17 +190,15 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-1.5 mb-4">
                     <div class="bg-slate-50 p-3 rounded-lg border">
                         <label class="label-text">Vonkajšia j. (Model / SN)</label>
-                        <input type="text" class="input-field font-bold">
+                        <input type="text" id="tc_ext_model" class="input-field font-bold">
                     </div>
                     <div class="bg-slate-50 p-3 rounded-lg border">
                         <label class="label-text">Vnútorná j. (Model / SN)</label>
-                        <input type="text" class="input-field font-bold">
+                        <input type="text" id="tc_int_model" class="input-field font-bold">
                     </div>
                 </div>
 
-                <!-- Tabuľka Napätí - Scrollable na mobile -->
                 <div class="p-1.5 overflow-x-auto">
-                    <label class="label-text text-red-600 mb-2">Elektrické meranie napätia (V) - <span class="italic text-[8px] text-slate-400">posuňte doprava ak nevidíte všetko</span></label>
                     <table class="min-w-[600px] w-full measuring-table text-xs">
                         <thead>
                             <tr>
@@ -201,33 +206,26 @@
                                 <th colspan="3">Medzi fázami (V)</th>
                                 <th colspan="3">Fáza voči Nule (V)</th>
                             </tr>
-                            <tr>
-                                <th>L1/L2</th>
-                                <th>L2/L3</th>
-                                <th>L3/L1</th>
-                                <th>L1/N</th>
-                                <th>L2/N</th>
-                                <th>L3/N</th>
-                            </tr>
+                            <tr><th>L1/L2</th><th>L2/L3</th><th>L3/L1</th><th>L1/N</th><th>L2/N</th><th>L3/N</th></tr>
                         </thead>
                         <tbody>
                             <tr>
-                                <td class="p-2 font-bold bg-slate-50">Vypnuté</td>
-                                <td><input type="text" class="bg-transparent"></td>
-                                <td><input type="text" class="bg-transparent"></td>
-                                <td><input type="text" class="bg-transparent"></td>
-                                <td><input type="text" class="bg-transparent"></td>
-                                <td><input type="text" class="bg-transparent"></td>
-                                <td><input type="text" class="bg-transparent"></td>
+                                <td class="p-2 font-bold bg-slate-50 text-[10px]">Vypnuté</td>
+                                <td><input type="text" id="volt_off_12" class="bg-transparent"></td>
+                                <td><input type="text" id="volt_off_23" class="bg-transparent"></td>
+                                <td><input type="text" id="volt_off_31" class="bg-transparent"></td>
+                                <td><input type="text" id="volt_off_1n" class="bg-transparent"></td>
+                                <td><input type="text" id="volt_off_2n" class="bg-transparent"></td>
+                                <td><input type="text" id="volt_off_3n" class="bg-transparent"></td>
                             </tr>
                             <tr>
-                                <td class="p-2 font-bold bg-slate-50 text-red-600">V Prevádzke</td>
-                                <td><input type="text" class="bg-transparent text-red-600"></td>
-                                <td><input type="text" class="bg-transparent text-red-600"></td>
-                                <td><input type="text" class="bg-transparent text-red-600"></td>
-                                <td><input type="text" class="bg-transparent text-red-600"></td>
-                                <td><input type="text" class="bg-transparent text-red-600"></td>
-                                <td><input type="text" class="bg-transparent text-red-600"></td>
+                                <td class="p-2 font-bold bg-slate-50 text-red-600 text-[10px]">V Prevádzke</td>
+                                <td><input type="text" id="volt_on_12" class="bg-transparent text-red-600"></td>
+                                <td><input type="text" id="volt_on_23" class="bg-transparent text-red-600"></td>
+                                <td><input type="text" id="volt_on_31" class="bg-transparent text-red-600"></td>
+                                <td><input type="text" id="volt_on_1n" class="bg-transparent text-red-600"></td>
+                                <td><input type="text" id="volt_on_2n" class="bg-transparent text-red-600"></td>
+                                <td><input type="text" id="volt_on_3n" class="bg-transparent text-red-600"></td>
                             </tr>
                         </tbody>
                     </table>
@@ -237,214 +235,242 @@
                     <div class="bg-slate-50 p-3 rounded-lg border">
                         <label class="label-text">Prevádzkový prúd (A)</label>
                         <div class="grid grid-cols-3 gap-3">
-                            <div><label class="text-[9px] font-bold">L1</label><input type="text" class="input-field text-center font-bold text-red-600"></div>
-                            <div><label class="text-[9px] font-bold">L2</label><input type="text" class="input-field text-center font-bold text-red-600"></div>
-                            <div><label class="text-[9px] font-bold">L3</label><input type="text" class="input-field text-center font-bold text-red-600"></div>
+                            <div><label class="text-[9px] font-bold">L1</label><input type="text" id="amp_l1" class="input-field text-center font-bold text-red-600"></div>
+                            <div><label class="text-[9px] font-bold">L2</label><input type="text" id="amp_l2" class="input-field text-center font-bold text-red-600"></div>
+                            <div><label class="text-[9px] font-bold">L3</label><input type="text" id="amp_l3" class="input-field text-center font-bold text-red-600"></div>
                         </div>
                     </div>
                     <div class="bg-slate-50 p-3 rounded-lg border">
                         <label class="label-text">Tlaky chladiva (bar)</label>
                         <div class="grid grid-cols-2 gap-3">
-                            <div><label class="text-[9px] font-bold">Vysoký (HP)</label><input type="text" class="input-field text-center font-bold"></div>
-                            <div><label class="text-[9px] font-bold">Nízky (LP)</label><input type="text" class="input-field text-center font-bold"></div>
+                            <div><label class="text-[9px] font-bold">Vysoký (HP)</label><input type="text" id="press_hp" class="input-field text-center font-bold"></div>
+                            <div><label class="text-[9px] font-bold">Nízky (LP)</label><input type="text" id="press_lp" class="input-field text-center font-bold"></div>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- SEKCIA: PLYNOVÝ KOTOL -->
+            <!-- SEKCIE OSTATNÝCH ZARIADENÍ (Zjednodušené pre Cloud demo) -->
             <div id="section-plyn" class="device-section">
                 <div class="section-header">02. Analýza - Plynový kotol</div>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 p-1.5">
-                    <div class="bg-slate-50 p-3 rounded-lg border"><label class="label-text">Model a Sériové číslo</label><input type="text" class="input-field font-bold"></div>
-                    <div class="bg-slate-50 p-3 rounded-lg border"><label class="label-text">Výkon kotla (kW)</label><input type="text" class="input-field text-center font-bold"></div>
-                </div>
-                <div class="grid grid-cols-2 md:grid-cols-3 gap-4 p-1.5 mt-4">
-                    <div class="bg-slate-50 p-2 border rounded-lg"><label class="label-text">O2 (%)</label><input type="text" class="input-field"></div>
-                    <div class="bg-slate-50 p-2 border rounded-lg"><label class="label-text text-red-600">CO2 (%)</label><input type="text" class="input-field font-bold text-red-600 text-center"></div>
-                    <div class="bg-slate-50 p-2 border rounded-lg"><label class="label-text">CO (ppm)</label><input type="text" class="input-field text-center"></div>
-                    <div class="bg-slate-50 p-2 border rounded-lg"><label class="label-text">Stat. Tlak (mbar)</label><input type="text" class="input-field"></div>
-                    <div class="bg-slate-50 p-2 border rounded-lg"><label class="label-text">Dyn. Tlak (mbar)</label><input type="text" class="input-field"></div>
-                    <div class="bg-slate-50 p-2 border rounded-lg"><label class="label-text">Teplota spalín</label><input type="text" class="input-field"></div>
+                    <div class="bg-slate-50 p-3 rounded-lg border"><label class="label-text">Model a SN</label><input type="text" id="gas_model" class="input-field"></div>
+                    <div class="bg-slate-50 p-3 rounded-lg border"><label class="label-text">CO2 (%)</label><input type="text" id="gas_co2" class="input-field text-red-600 font-bold"></div>
                 </div>
             </div>
-
-            <!-- SEKCIA: ELEKTRICKÝ KOTOL -->
+            
             <div id="section-elektro" class="device-section">
-                <div class="section-header">02. Prúdy - Elektrický kotol</div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-1.5 mt-2">
-                    <div class="bg-slate-50 p-3 border rounded-lg"><label class="label-text">Prúd L1 (A)</label><input type="text" class="input-field font-bold text-red-600 text-center"></div>
-                    <div class="bg-slate-50 p-3 border rounded-lg"><label class="label-text">Prúd L2 (A)</label><input type="text" class="input-field font-bold text-red-600 text-center"></div>
-                    <div class="bg-slate-50 p-3 border rounded-lg"><label class="label-text">Prúd L3 (A)</label><input type="text" class="input-field font-bold text-red-600 text-center"></div>
-                </div>
+                <div class="section-header">02. Elektrický kotol</div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-1.5"><input type="text" id="el_l1" class="input-field" placeholder="L1 (A)"><input type="text" id="el_l2" class="input-field" placeholder="L2 (A)"><input type="text" id="el_l3" class="input-field" placeholder="L3 (A)"></div>
             </div>
 
-            <!-- SEKCIA: PELETOVÝ KOTOL -->
             <div id="section-pelety" class="device-section">
-                <div class="section-header">02. Spaľovanie - Peletový kotol</div>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 p-1.5 mt-2">
-                    <div class="bg-slate-50 p-3 border rounded-lg"><label class="label-text">Dávkovanie (%)</label><input type="text" class="input-field text-center"></div>
-                    <div class="bg-slate-50 p-3 border rounded-lg"><label class="label-text">Ventilátor (%)</label><input type="text" class="input-field text-center"></div>
-                    <div class="bg-slate-50 p-3 border rounded-lg"><label class="label-text text-red-600">Účinnosť (%)</label><input type="text" class="input-field font-bold text-red-600 text-center"></div>
-                </div>
+                <div class="section-header">02. Peletový kotol</div>
+                <div class="grid grid-cols-2 gap-4 p-1.5"><input type="text" id="pel_eff" class="input-field" placeholder="Účinnosť (%)"><input type="text" id="pel_temp" class="input-field" placeholder="Spaliny (°C)"></div>
             </div>
 
             <!-- SPOLOČNÁ ELEKTRIKA -->
             <div class="section-header">03. Inštalácia a Káble</div>
             <div class="p-1.5 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="space-y-4">
-                    <div class="bg-slate-50 p-3 border rounded-lg">
-                        <label class="label-text text-red-600 font-black">Istenie (Presné označenie):</label>
-                        <input type="text" class="input-field border-red-200" placeholder="napr. B25/3 + chránič">
-                    </div>
-                    <div class="bg-slate-50 p-3 border rounded-lg">
-                        <label class="label-text">Napájací kábel:</label>
-                        <input type="text" class="input-field" placeholder="napr. CYKY-J 5x2,5">
-                    </div>
+                <div class="bg-slate-50 p-3 border rounded-lg">
+                    <label class="label-text text-red-600 font-black">Istenie:</label>
+                    <input type="text" id="protection" class="input-field border-red-200" placeholder="napr. B25/3">
                 </div>
-                <div class="space-y-4">
-                    <div class="bg-slate-50 p-3 border rounded-lg">
-                        <label class="label-text">Komunikačný kábel:</label>
-                        <input type="text" class="input-field" placeholder="napr. LiYCY 2x0,75">
-                    </div>
-                    <div class="bg-slate-50 p-3 border rounded-lg flex items-center justify-between">
-                        <label class="label-text text-slate-500 mb-0">Magnetický filter:</label>
-                        <div class="flex items-center gap-2">
-                            <span class="text-xs font-bold uppercase">Namontovaný</span>
-                            <input type="checkbox" checked class="checkbox-custom">
-                        </div>
-                    </div>
+                <div class="bg-slate-50 p-3 border rounded-lg">
+                    <label class="label-text">Kábel napájania:</label>
+                    <input type="text" id="cable_power" class="input-field">
                 </div>
             </div>
 
             <!-- CERTIFIKÁTY -->
-            <div class="mt-8 p-5 border border-red-200 bg-red-50 rounded-xl relative">
-                <h3 class="text-[11px] font-black uppercase text-red-600 italic mb-2 border-b border-red-200 pb-1 underline decoration-2">Odborné prehlásenie</h3>
+            <div class="mt-8 p-5 border border-red-200 bg-red-50 rounded-xl">
+                <h3 class="text-[11px] font-black uppercase text-red-600 italic mb-2 border-b border-red-200 pb-1">Odborné prehlásenie</h3>
                 <p class="text-[10px] md:text-[8.5px] leading-relaxed text-slate-700 italic mb-4">
-                    Zariadenie bolo odovzdané ako funkčný celok podľa noriem STN EN 378, STN 33 2000-6 a STN EN 1775. Je schopné bezpečnej prevádzke a užívateľ bol zaškolený.
+                    Zariadenie odovzdané ako funkčný celok podľa STN EN 378 a STN 33 2000-6. Užívateľ zaškolený.
                 </p>
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-3">
-                    <div class="bg-white p-3 rounded-lg border shadow-sm"><span class="label-text text-red-500">Chladiar:</span><span class="text-xs font-black italic">10637</span></div>
-                    <div class="bg-white p-3 rounded-lg border shadow-sm"><span class="label-text text-red-500">Elektro §22:</span><span class="text-xs font-black italic">18122868</span></div>
-                    <div class="bg-white p-3 rounded-lg border shadow-sm"><span class="label-text text-red-500">Plyn:</span><span class="text-xs font-black tracking-tighter italic">077/2/2021-PZ-Bd,f,g,h</span></div>
+                <div class="grid grid-cols-3 gap-2">
+                    <div class="bg-white p-2 rounded border text-[10px] font-bold">Chladiar: 10637</div>
+                    <div class="bg-white p-2 rounded border text-[10px] font-bold">Elektro: 18122868</div>
+                    <div class="bg-white p-2 rounded border text-[10px] font-bold tracking-tighter">Plyn: 077/2/2021</div>
                 </div>
             </div>
 
             <!-- DIGITÁLNE PODPISY -->
-            <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-16">
+            <div class="mt-10 grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div class="flex flex-col items-center">
-                    <label class="label-text mb-2 tracking-widest text-slate-400">Podpis zákazníka</label>
+                    <label class="label-text mb-2 tracking-widest text-slate-400 uppercase">Podpis zákazníka</label>
                     <div class="w-full relative">
                         <canvas id="customerSignature" class="signature-pad shadow-inner"></canvas>
-                        <button type="button" onclick="clearSignature('customerSignature')" class="no-print absolute top-2 right-2 text-[10px] bg-white/90 px-3 py-1.5 rounded-full border shadow-sm font-bold active:bg-slate-100">VYMAZAŤ</button>
+                        <button type="button" onclick="clearSignature('customerSignature')" class="no-print absolute top-2 right-2 text-[10px] bg-white/90 px-3 py-1.5 rounded-full border shadow-sm font-bold">VYMAZAŤ</button>
                     </div>
                 </div>
                 <div class="flex flex-col items-center">
-                    <label class="label-text mb-2 tracking-widest text-red-600 italic">Podpis technika (Spektra)</label>
+                    <label class="label-text mb-2 tracking-widest text-red-600 italic uppercase">Podpis technika</label>
                     <div class="w-full relative">
                         <canvas id="technicianSignature" class="signature-pad shadow-inner border-red-100"></canvas>
-                        <button type="button" onclick="clearSignature('technicianSignature')" class="no-print absolute top-2 right-2 text-[10px] bg-white/90 px-3 py-1.5 rounded-full border shadow-sm font-bold active:bg-slate-100 text-red-600">VYMAZAŤ</button>
+                        <button type="button" onclick="clearSignature('technicianSignature')" class="no-print absolute top-2 right-2 text-[10px] bg-white/90 px-3 py-1.5 rounded-full border shadow-sm font-bold text-red-600">VYMAZAŤ</button>
                     </div>
                 </div>
             </div>
 
+            <!-- OVLÁDACIE PRVKY -->
             <div class="mt-16 no-print flex flex-col items-center gap-4">
-                <button type="button" onclick="window.print()" class="w-full md:w-auto bg-red-600 text-white px-16 py-5 rounded-full font-[900] text-sm shadow-[0_15px_30px_-5px_rgba(225,29,72,0.4)] hover:bg-slate-800 transition-all transform active:scale-95 uppercase tracking-widest">
-                    Vytlačiť protokol (PDF)
-                </button>
-                <p class="text-[9px] text-slate-400 uppercase font-black tracking-[0.2em]">Spektra Install &copy; 2026</p>
+                <div class="flex flex-col md:flex-row gap-3 w-full justify-center">
+                    <button type="button" id="btnSave" class="bg-zinc-800 text-white px-10 py-5 rounded-full font-[900] text-sm shadow-xl hover:bg-black transition-all transform active:scale-95 uppercase tracking-widest flex items-center gap-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M5.5 13a3.5 3.5 0 01-.369-6.98 4 4 0 117.753-1.977A4.5 4.5 0 1113.5 13H11V9.413l1.293 1.293a1 1 0 001.414-1.414l-3-3a1 1 0 00-1.414 0l-3 3a1 1 0 001.414 1.414L9 9.414V13H5.5z" /><path d="M9 13h2v5a1 1 0 11-2 0v-5z" /></svg>
+                        Uložiť do cloudu
+                    </button>
+                    <button type="button" onclick="window.print()" class="bg-red-600 text-white px-10 py-5 rounded-full font-[900] text-sm shadow-xl hover:bg-red-700 transition-all transform active:scale-95 uppercase tracking-widest">
+                        Vytlačiť do PDF
+                    </button>
+                </div>
+                <p class="text-[9px] text-slate-400 uppercase font-black tracking-[0.2em]">Spektra Install Cloud Sync</p>
             </div>
         </form>
     </div>
     
-    <footer class="mt-10 mb-20 text-center text-slate-400 text-[8px] font-black uppercase no-print tracking-[0.4em]">Verzia 3.3 | Mobile Ready</footer>
-    
-    <script>
-        function updateDeviceView() {
-            const selected = document.getElementById('deviceSelector').value;
-            document.querySelectorAll('.device-section').forEach(s => s.classList.remove('active'));
-            document.getElementById('section-' + selected).classList.add('active');
-        }
+    <footer class="mt-10 mb-20 text-center text-slate-400 text-[8px] font-black uppercase no-print tracking-[0.4em]">Spektra v3.4 Cloud | &copy; 2026</footer>
 
-        function initSignaturePad(canvasId) {
-            const canvas = document.getElementById(canvasId);
+    <!-- Firebase SDKs -->
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc, collection } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        // Global variables provided by environment
+        const firebaseConfig = JSON.parse(__firebase_config);
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
+
+        let currentUser = null;
+
+        // AUTH INITIALIZATION
+        const initAuth = async () => {
+            try {
+                if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                    await signInWithCustomToken(auth, __initial_auth_token);
+                } else {
+                    await signInAnonymously(auth);
+                }
+            } catch (error) {
+                console.error("Auth error", error);
+                showToast("Chyba pripojenia k cloudu.");
+            }
+        };
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) {
+                console.log("Logged in as:", user.uid);
+            }
+        });
+
+        initAuth();
+
+        // SIGNATURE PADS
+        const pads = {};
+        function initPad(id) {
+            const canvas = document.getElementById(id);
             const ctx = canvas.getContext('2d');
-            let isDrawing = false;
-
+            let drawing = false;
             ctx.strokeStyle = "#1e293b";
-            ctx.lineWidth = 3; // Hrubšia čiara pre mobil
+            ctx.lineWidth = 3;
             ctx.lineCap = "round";
-            ctx.lineJoin = "round";
 
-            function getMousePos(canvasDom, mouseEvent) {
-                const rect = canvasDom.getBoundingClientRect();
-                const clientX = mouseEvent.clientX || (mouseEvent.touches && mouseEvent.touches[0].clientX);
-                const clientY = mouseEvent.clientY || (mouseEvent.touches && mouseEvent.touches[0].clientY);
-                return {
-                    x: clientX - rect.left,
-                    y: clientY - rect.top
-                };
-            }
-
-            function startDrawing(e) {
-                isDrawing = true;
-                const pos = getMousePos(canvas, e);
-                ctx.beginPath();
-                ctx.moveTo(pos.x, pos.y);
-                if (e.type === 'touchstart') e.preventDefault();
-            }
-
-            function draw(e) {
-                if (!isDrawing) return;
-                const pos = getMousePos(canvas, e);
-                ctx.lineTo(pos.x, pos.y);
-                ctx.stroke();
-                if (e.type === 'touchmove') e.preventDefault();
-            }
-
-            function stopDrawing() {
-                isDrawing = false;
-            }
-
-            canvas.addEventListener("mousedown", startDrawing);
-            canvas.addEventListener("mousemove", draw);
-            canvas.addEventListener("mouseup", stopDrawing);
-            canvas.addEventListener("touchstart", startDrawing, {passive: false});
-            canvas.addEventListener("touchmove", draw, {passive: false});
-            canvas.addEventListener("touchend", stopDrawing);
-
-            const resize = () => {
-                const data = canvas.toDataURL();
-                // Set display size
-                canvas.style.width = '100%';
-                // Set actual pixels
-                canvas.width = canvas.offsetWidth;
-                canvas.height = canvas.offsetHeight;
-                
-                const img = new Image();
-                img.onload = () => ctx.drawImage(img, 0, 0);
-                img.src = data;
-                
-                // Reset styles after resize
-                ctx.strokeStyle = "#1e293b";
-                ctx.lineWidth = 3;
-                ctx.lineCap = "round";
+            const getPos = (e) => {
+                const rect = canvas.getBoundingClientRect();
+                const x = (e.clientX || e.touches[0].clientX) - rect.left;
+                const y = (e.clientY || e.touches[0].clientY) - rect.top;
+                return { x, y };
             };
-            
-            window.addEventListener('resize', resize);
+
+            const start = (e) => { drawing = true; const p = getPos(e); ctx.beginPath(); ctx.moveTo(p.x, p.y); if(e.touches) e.preventDefault(); };
+            const move = (e) => { if(!drawing) return; const p = getPos(e); ctx.lineTo(p.x, p.y); ctx.stroke(); if(e.touches) e.preventDefault(); };
+            const stop = () => drawing = false;
+
+            canvas.addEventListener('mousedown', start);
+            canvas.addEventListener('mousemove', move);
+            window.addEventListener('mouseup', stop);
+            canvas.addEventListener('touchstart', start, {passive: false});
+            canvas.addEventListener('touchmove', move, {passive: false});
+            canvas.addEventListener('touchend', stop);
+
+            pads[id] = { canvas, ctx };
             canvas.width = canvas.offsetWidth;
             canvas.height = canvas.offsetHeight;
         }
 
-        function clearSignature(canvasId) {
-            const canvas = document.getElementById(canvasId);
-            const ctx = canvas.getContext('2d');
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        window.clearSignature = (id) => {
+            const pad = pads[id];
+            pad.ctx.clearRect(0, 0, pad.canvas.width, pad.canvas.height);
+        };
+
+        initPad('customerSignature');
+        initPad('technicianSignature');
+
+        // CLOUD SAVING
+        document.getElementById('btnSave').onclick = async () => {
+            if (!currentUser) {
+                showToast("Čakám na pripojenie...");
+                return;
+            }
+
+            const pId = document.getElementById('protocolId').value.trim();
+            if (!pId) {
+                showToast("Zadajte číslo protokolu!");
+                return;
+            }
+
+            showToast("Ukladám...");
+
+            // Collect all inputs
+            const data = {
+                metadata: {
+                    protocolId: pId,
+                    type: document.getElementById('deviceSelector').value,
+                    timestamp: new Date().toISOString(),
+                    savedBy: currentUser.uid
+                },
+                content: {}
+            };
+
+            // Scrape all inputs with IDs
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.id && el.id !== 'protocolId') {
+                    data.content[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+                }
+            });
+
+            // Scrape signatures
+            data.signatures = {
+                customer: document.getElementById('customerSignature').toDataURL(),
+                technician: document.getElementById('technicianSignature').toDataURL()
+            };
+
+            try {
+                // RULE 1: Strict Path
+                const docRef = doc(db, 'artifacts', appId, 'public', 'data', 'protocols', pId);
+                await setDoc(docRef, data);
+                showToast("✅ Protokol uložený do cloudu!");
+            } catch (e) {
+                console.error(e);
+                showToast("❌ Chyba pri ukladaní.");
+            }
+        };
+
+        function showToast(msg) {
+            const x = document.getElementById("toast");
+            x.innerHTML = msg;
+            x.className = "show";
+            setTimeout(() => { x.className = x.className.replace("show", ""); }, 3000);
         }
 
-        window.onload = function() {
-            initSignaturePad('customerSignature');
-            initSignaturePad('technicianSignature');
+        window.updateDeviceView = () => {
+            const selected = document.getElementById('deviceSelector').value;
+            document.querySelectorAll('.device-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('section-' + selected).classList.add('active');
         };
     </script>
 </body>
