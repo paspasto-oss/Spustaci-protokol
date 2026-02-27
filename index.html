@@ -269,9 +269,17 @@
         // Auto Anonymous Auth
         const initAuth = async () => {
             try {
+                let tokenSuccess = false;
                 if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-                    await signInWithCustomToken(auth, __initial_auth_token);
-                } else {
+                    try {
+                        await signInWithCustomToken(auth, __initial_auth_token);
+                        tokenSuccess = true;
+                    } catch (tokenErr) {
+                        console.warn("Custom token mismatch (očakávané pri použití vlastného Firebase projektu), skúšam anonymné prihlásenie...");
+                    }
+                }
+                
+                if (!tokenSuccess) {
                     await signInAnonymously(auth);
                 }
             } catch (e) {
