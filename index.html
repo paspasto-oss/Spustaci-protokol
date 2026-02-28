@@ -1,4 +1,3 @@
-
 <!DOCTYPE html>
 <html lang="sk">
 <head>
@@ -53,29 +52,51 @@
         .signature-line { border-top: 1px solid #000; width: 100%; text-align: center; font-size: 10px; font-weight: 700; padding-top: 4px; margin-top: auto;}
         .signature-pad { border: 1px dashed #cbd5e1; background: #fafafa; width: 100%; height: 80px; touch-action: none; margin-bottom: 4px; }
 
-        /* --- ŠTÝLY PRE DOKONALÚ TLAČ DO PDF --- */
+        /* --- ŠTÝLY PRE DOKONALÚ TLAČ DO PDF NA 1 STRANU A4 --- */
         @media print {
-            @page { size: A4 portrait; margin: 10mm; }
-            body { background: white !important; padding: 0 !important; font-size: 10pt !important; }
+            /* Extrémne stlačenie okrajov na 8mm */
+            @page { size: A4 portrait; margin: 8mm; }
+            body { background: white !important; padding: 0 !important; font-size: 9pt !important; line-height: 1.15 !important; }
             .no-print { display: none !important; }
             
             .page-container { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
             
             /* Tlačové zarovnanie hlavičky: vľavo firma, v strede zariadenie, vpravo protokol */
-            .print-header { display: flex !important; flex-direction: row !important; align-items: flex-end !important; justify-content: space-between !important; }
+            .print-header { display: flex !important; flex-direction: row !important; align-items: flex-end !important; justify-content: space-between !important; margin-bottom: 8px !important; padding-bottom: 4px !important; }
             .print-header > div { flex: 1 !important; }
             .print-left { text-align: left !important; align-items: flex-start !important; justify-content: flex-end !important; }
             .print-center { text-align: center !important; align-items: center !important; justify-content: flex-end !important; }
             .print-right { text-align: right !important; align-items: flex-end !important; justify-content: flex-end !important; }
+            .print-header h1 { font-size: 20pt !important; }
 
-            /* Natvrdo vynútime dva stĺpce pre údaje pri tlači */
-            .print-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 16px !important; }
-            .form-box { border-color: #000 !important; break-inside: avoid; }
+            /* Natvrdo vynútime dva stĺpce pre údaje pri tlači a stlačíme ich k sebe */
+            .print-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-bottom: 4px !important; }
+            .form-box { border-color: #000 !important; break-inside: avoid; padding: 6px 8px !important; }
+            .form-box h3 { margin-bottom: 4px !important; font-size: 8.5pt !important; border-bottom: 1px solid #000 !important;}
+            .form-row { font-size: 8.5pt !important; margin-bottom: 1px !important; }
             
-            .data-table th, .data-table td { border-color: #000 !important; padding: 4px 6px !important; }
+            /* Kompresia tabuliek */
+            .data-table { font-size: 8.5pt !important; margin-bottom: 6px !important; }
+            .data-table th, .data-table td { border-color: #000 !important; padding: 3px 4px !important; }
             .data-table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
-            .section-title { border-left-color: #dc2626 !important; margin: 16px 0 8px 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; page-break-after: avoid; }
             
+            /* Nadpisy sekcií stlačené bližšie k textom */
+            .section-title { font-size: 9.5pt !important; border-left-color: #dc2626 !important; margin: 8px 0 3px 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; page-break-after: avoid; }
+            
+            /* Redukcia veľkých okrajov (marginov), ktoré robí Tailwind */
+            .mb-6 { margin-bottom: 6px !important; }
+            .mb-4 { margin-bottom: 4px !important; }
+            .mt-6 { margin-top: 6px !important; }
+            .gap-8 { gap: 16px !important; }
+            p.text-\\[11px\\] { font-size: 8.5pt !important; margin-bottom: 4px !important; line-height: 1.15 !important; }
+            .py-3 { padding-top: 3px !important; padding-bottom: 3px !important; }
+            .my-4 { margin-top: 4px !important; margin-bottom: 4px !important; }
+            
+            /* Kompresia podpisových polí */
+            .h-\\[90px\\] { height: 60px !important; }
+            .signature-line { font-size: 7.5pt !important; padding-top: 2px !important; }
+            img[alt="Razítko technika"] { max-height: 50px !important; }
+
             input[type="text"]:focus, input[type="date"]:focus, input[type="email"]:focus { background: transparent !important; border: none !important; }
             .signature-pad { border: none !important; background: transparent !important; }
             
@@ -495,11 +516,11 @@
                             });
                             document.querySelectorAll('.no-print, button').forEach(el => el.remove());
                             
-                            // Nahraď canvas obrázkom
+                            // Nahraď canvas obrázkom (výrazne zmenšené pre print na A4)
                             if ("${data.signatures && data.signatures.cust}" !== "undefined") {
                                 const custSig = document.getElementById('customerSignature');
                                 if (custSig) {
-                                    custSig.outerHTML = '<img src="${data.signatures.cust}" style="width:100%; height:80px; object-fit:contain; background:transparent;">';
+                                    custSig.outerHTML = '<img src="${data.signatures.cust}" style="width:100%; height:50px; object-fit:contain; background:transparent;">';
                                 }
                             }
                             
