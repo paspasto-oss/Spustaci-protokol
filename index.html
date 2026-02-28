@@ -40,7 +40,7 @@
 
         .section-title { 
             font-size: 12px; font-weight: 800; text-transform: uppercase; color: #000;
-            border-left: 3px solid #dc2626; padding-left: 8px; margin: 24px 0 12px 0;
+            border-left: 3px solid #dc2626; padding-left: 8px; margin: 20px 0 10px 0;
             display: flex; align-items: center; gap: 8px;
         }
 
@@ -59,10 +59,14 @@
             .no-print { display: none !important; }
             
             .page-container { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            .form-box { border-color: #000 !important; }
+            
+            /* Natvrdo vynútime dva stĺpce pre údaje pri tlači */
+            .print-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 16px !important; }
+            .form-box { border-color: #000 !important; break-inside: avoid; }
+            
             .data-table th, .data-table td { border-color: #000 !important; padding: 4px 6px !important; }
             .data-table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
-            .section-title { border-left-color: #dc2626 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; page-break-after: avoid; }
+            .section-title { border-left-color: #dc2626 !important; margin: 16px 0 8px 0; -webkit-print-color-adjust: exact; print-color-adjust: exact; page-break-after: avoid; }
             
             input[type="text"]:focus, input[type="date"]:focus, input[type="email"]:focus { background: transparent !important; border: none !important; }
             .signature-pad { border: none !important; background: transparent !important; }
@@ -96,7 +100,7 @@
 
     <div class="page-container max-w-[850px] mx-auto bg-white shadow-2xl p-6 md:p-10 min-h-screen border border-slate-200">
         
-        <!-- HLAVIČKA AKO Z OBRÁZKU -->
+        <!-- HLAVIČKA -->
         <div class="flex flex-col md:flex-row justify-between items-end border-b-[3px] border-red-600 pb-3 mb-6 gap-4 break-inside-avoid">
             <div>
                 <h1 class="text-3xl tracking-tighter uppercase" style="font-family: 'Montserrat', sans-serif; font-weight: 900; line-height: 1;">
@@ -132,8 +136,8 @@
         </div>
 
         <form id="protocolForm">
-            <!-- ÚDAJE: 2 STĹPCE -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 break-inside-avoid">
+            <!-- ÚDAJE: 2 STĹPCE (opravené pomocou print-grid-2) -->
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 break-inside-avoid print-grid-2">
                 <!-- Ľavý stĺpec -->
                 <div class="form-box">
                     <h3>ZHOTOVITEĽ / ÚDAJE O INŠTALÁCII</h3>
@@ -173,7 +177,7 @@
                 </tbody>
             </table>
 
-            <!-- DYNAMICKÉ SEKCIE (ZÁVISIA OD VÝBERU) -->
+            <!-- DYNAMICKÉ SEKCIE -->
             <!-- === TEPELNÉ ČERPADLO === -->
             <div id="section-tc" class="device-section active">
                 <div class="section-title">2. Výsledky meraní a inštalačné kontroly (TČ)</div>
@@ -246,39 +250,39 @@
 
             <!-- POZNÁMKY -->
             <div class="section-title">Ostatné zistenia / Poznámky</div>
-            <div class="border border-slate-300 bg-white p-2 break-inside-avoid mb-6">
+            <div class="border border-cbd5e1 bg-white p-2 break-inside-avoid mb-6">
                 <textarea id="notes" rows="2" class="w-full resize-none outline-none font-medium text-[11px]" placeholder="Zariadenie bolo zapojené bez závad. Odovzdané užívateľovi."></textarea>
             </div>
 
             <!-- ZÁVER (ZELENÝ BOX) -->
-            <div class="break-inside-avoid mt-8">
+            <div class="break-inside-avoid mb-6">
                 <div class="section-title">Celkové hodnotenie a záver</div>
                 <p class="text-[11px] text-justify mb-3">
                     Zariadenie bolo nainštalované a zapojené podľa technickej dokumentácie a pokynov výrobcu. Funkčné skúšky a merania preukázali, že zariadenie je prevádzkyschopné a spĺňa technické normy pre bezpečnú prevádzku. Nasledujúca pravidelná servisná prehliadka sa odporúča vykonať v zmysle záručných podmienok o 1 rok od dátumu inštalácie.
                 </p>
-                <div class="border-2 border-green-600 py-3 text-center my-6 bg-green-50">
-                    <h3 class="text-green-700 font-bold uppercase text-[13px] tracking-wide m-0">Zariadenie je spôsobilé bezpečnej prevádzky</h3>
+                <div class="border-2 border-green-600 py-3 text-center my-4 bg-green-50">
+                    <h3 class="text-green-700 font-bold uppercase text-[12px] tracking-wide m-0">Zariadenie je spôsobilé bezpečnej prevádzky</h3>
                 </div>
             </div>
 
             <!-- PODPISY -->
-            <div class="grid grid-cols-3 gap-8 mt-12 break-inside-avoid">
+            <div class="grid grid-cols-3 gap-8 mt-6 break-inside-avoid">
                 <!-- Dátum -->
-                <div class="flex flex-col justify-end items-center h-[100px]">
+                <div class="flex flex-col justify-end items-center h-[90px]">
                     <div class="w-full text-center font-bold text-sm mb-1" id="sig_date_display">27.02.2026</div>
                     <div class="signature-line">Dátum</div>
                 </div>
 
                 <!-- Zákazník -->
-                <div class="flex flex-col justify-end items-center h-[100px] relative">
+                <div class="flex flex-col justify-end items-center h-[90px] relative">
                     <canvas id="customerSignature" class="signature-pad absolute top-0 left-0"></canvas>
                     <button type="button" onclick="clearSignature('customerSignature')" class="no-print absolute top-[-20px] text-[9px] bg-slate-200 px-2 py-0.5 rounded cursor-pointer">Zmazať</button>
                     <div class="signature-line z-10 bg-white/50 w-full mt-auto">Podpis prevádzkovateľa / zákazníka</div>
                 </div>
 
                 <!-- Technik -->
-                <div class="flex flex-col justify-end items-center h-[100px] relative">
-                    <div class="absolute top-[-20px] left-0 w-full h-[120px] flex items-center justify-center">
+                <div class="flex flex-col justify-end items-center h-[90px] relative">
+                    <div class="absolute top-[-20px] left-0 w-full h-[110px] flex items-center justify-center">
                         <img src="Razitko a podpis.jpg" alt="Razítko technika" class="max-h-full max-w-[150%] object-contain mix-blend-multiply opacity-90" onerror="this.onerror=null; this.style.display='none';">
                     </div>
                     <div class="signature-line z-10 bg-white/50 w-full mt-auto">Uvádzací technik (Spektra install)</div>
@@ -401,7 +405,7 @@
         window.clearSignature = (id) => {
             if (pads[id]) pads[id].ctx.clearRect(0, 0, pads[id].canvas.width, pads[id].canvas.height);
         };
-        setTimeout(() => initPad('customerSignature'), 100); // delay to ensure layout is done
+        setTimeout(() => initPad('customerSignature'), 100);
 
         // Ukladanie do cloudu
         document.getElementById('btnSave').onclick = async () => {
