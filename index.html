@@ -54,14 +54,13 @@
 
         /* --- ŠTÝLY PRE DOKONALÚ TLAČ DO PDF NA 1 STRANU A4 --- */
         @media print {
-            /* Extrémne stlačenie okrajov na 8mm */
             @page { size: A4 portrait; margin: 8mm; }
             body { background: white !important; padding: 0 !important; font-size: 9pt !important; line-height: 1.15 !important; }
             .no-print { display: none !important; }
             
             .page-container { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
             
-            /* Tlačové zarovnanie hlavičky: vľavo firma, v strede zariadenie, vpravo protokol */
+            /* Tlačové zarovnanie hlavičky */
             .print-header { display: flex !important; flex-direction: row !important; align-items: flex-end !important; justify-content: space-between !important; margin-bottom: 8px !important; padding-bottom: 4px !important; }
             .print-header > div { flex: 1 !important; }
             .print-left { text-align: left !important; align-items: flex-start !important; justify-content: flex-end !important; }
@@ -69,7 +68,7 @@
             .print-right { text-align: right !important; align-items: flex-end !important; justify-content: flex-end !important; }
             .print-header h1 { font-size: 20pt !important; }
 
-            /* Natvrdo vynútime dva stĺpce pre údaje pri tlači a stlačíme ich k sebe */
+            /* Grid kompresia */
             .print-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-bottom: 4px !important; }
             .form-box { border-color: #000 !important; break-inside: avoid; padding: 6px 8px !important; }
             .form-box h3 { margin-bottom: 4px !important; font-size: 8.5pt !important; border-bottom: 1px solid #000 !important;}
@@ -80,10 +79,8 @@
             .data-table th, .data-table td { border-color: #000 !important; padding: 3px 4px !important; }
             .data-table th { background-color: #f1f5f9 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact;}
             
-            /* Nadpisy sekcií stlačené bližšie k textom */
             .section-title { font-size: 9.5pt !important; border-left-color: #dc2626 !important; margin: 8px 0 3px 0 !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; page-break-after: avoid; }
             
-            /* Redukcia veľkých okrajov (marginov), ktoré robí Tailwind */
             .mb-6 { margin-bottom: 6px !important; }
             .mb-4 { margin-bottom: 4px !important; }
             .mt-6 { margin-top: 6px !important; }
@@ -92,7 +89,6 @@
             .py-3 { padding-top: 3px !important; padding-bottom: 3px !important; }
             .my-4 { margin-top: 4px !important; margin-bottom: 4px !important; }
             
-            /* Kompresia podpisových polí */
             .h-\\[90px\\] { height: 60px !important; }
             .signature-line { font-size: 7.5pt !important; padding-top: 2px !important; }
             img[alt="Razítko technika"] { max-height: 50px !important; }
@@ -129,7 +125,7 @@
 
     <div class="page-container max-w-[850px] mx-auto bg-white shadow-2xl p-6 md:p-10 min-h-screen border border-slate-200">
         
-        <!-- HLAVIČKA (Vynútené rozloženie v tlači: vľavo-stred-vpravo) -->
+        <!-- HLAVIČKA -->
         <div class="flex flex-col md:flex-row justify-between items-end border-b-[3px] border-red-600 pb-3 mb-6 gap-4 break-inside-avoid print-header">
             
             <!-- ĽAVÁ ČASŤ: Firma -->
@@ -172,9 +168,8 @@
         </div>
 
         <form id="protocolForm">
-            <!-- ÚDAJE: 2 STĹPCE (opravené pomocou print-grid-2) -->
+            <!-- ÚDAJE: 2 STĹPCE -->
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 break-inside-avoid print-grid-2">
-                <!-- Ľavý stĺpec -->
                 <div class="form-box">
                     <h3>ZHOTOVITEĽ / ÚDAJE O INŠTALÁCII</h3>
                     <div class="form-row"><span>Spoločnosť:</span> <input type="text" id="inst_company" value="Spektra install s.r.o."></div>
@@ -183,7 +178,6 @@
                     <div class="form-row"><span>Vonkajšia teplota (°C):</span> <input type="text" id="ext_temp" placeholder="Napr. 5°C"></div>
                 </div>
                 
-                <!-- Pravý stĺpec -->
                 <div class="form-box">
                     <h3>PREVÁDZKOVATEĽ / OBJEDNÁVATEĽ</h3>
                     <div class="form-row"><span>Meno / Názov:</span> <input type="text" id="customer" placeholder="Zadajte meno"></div>
@@ -193,29 +187,20 @@
                 </div>
             </div>
 
-            <!-- 1. ZARIADENIE -->
-            <div class="section-title">1. Údaje o zariadení</div>
-            <table class="data-table break-inside-avoid">
-                <thead>
-                    <tr><th style="width: 25%">Časť</th><th style="width: 35%">Model / Typ</th><th style="width: 40%">Sériové číslo (S/N)</th></tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="font-bold text-slate-700">Vonkajšia jednotka</td>
-                        <td><input type="text" id="model_ext" placeholder="Zadajte model"></td>
-                        <td><input type="text" id="sn_ext" placeholder="Zadajte SN"></td>
-                    </tr>
-                    <tr>
-                        <td class="font-bold text-slate-700">Vnútorná jednotka</td>
-                        <td><input type="text" id="model_int" placeholder="Zadajte model"></td>
-                        <td><input type="text" id="sn_int" placeholder="Zadajte SN"></td>
-                    </tr>
-                </tbody>
-            </table>
 
-            <!-- DYNAMICKÉ SEKCIE -->
+            <!-- DYNAMICKÉ SEKCIE (Zariadenie + Merania podľa typu) -->
+            
             <!-- === TEPELNÉ ČERPADLO === -->
             <div id="section-tc" class="device-section active">
+                <div class="section-title">1. Údaje o zariadení (Tepelné čerpadlo)</div>
+                <table class="data-table break-inside-avoid">
+                    <thead><tr><th style="width: 25%">Časť</th><th style="width: 35%">Model / Typ</th><th style="width: 40%">Sériové číslo (S/N)</th></tr></thead>
+                    <tbody>
+                        <tr><td class="font-bold text-slate-700">Vonkajšia jednotka</td><td><input type="text" id="model_ext" placeholder="Zadajte model"></td><td><input type="text" id="sn_ext" placeholder="Zadajte SN"></td></tr>
+                        <tr><td class="font-bold text-slate-700">Vnútorná jednotka</td><td><input type="text" id="model_int" placeholder="Zadajte model"></td><td><input type="text" id="sn_int" placeholder="Zadajte SN"></td></tr>
+                    </tbody>
+                </table>
+
                 <div class="section-title">2. Výsledky meraní a inštalačné kontroly (TČ)</div>
                 <table class="data-table break-inside-avoid mb-4">
                     <thead><tr><th style="width: 45%">Predmet kontroly</th><th style="width: 20%">Predpísané</th><th style="width: 20%">Namerané / Stav</th><th style="width: 15%">Výsledok</th></tr></thead>
@@ -223,18 +208,16 @@
                         <tr><td>Jednotka umiestnená a ukotvená podľa návodu</td><td>Áno</td><td class="text-center"><input type="checkbox" id="tc_placed" class="checkbox-custom" checked></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Všetky časti riadne a bezpečne uzemnené</td><td>Áno</td><td class="text-center"><input type="checkbox" id="tc_ground" class="checkbox-custom" checked></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Funkčný magnetický filter v systéme</td><td>Áno</td><td class="text-center"><input type="checkbox" id="w_filt" class="checkbox-custom" checked></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Kvalita vody vo vykurovacom okruhu (pH)</td><td>7.0 - 8.5</td><td><input type="text" id="w_ph" value="7.5" class="text-center w-full"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Vákuovanie chladiaceho okruhu (bar)</td><td>Pod 0 bar</td><td><input type="text" id="tc_vacuum" value="-1.0 bar" class="text-center w-full text-red-600"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Množstvo dodatočne doplneného chladiva (kg)</td><td>Podľa dĺžky</td><td><input type="text" id="tc_refrig_add" value="0.0 kg" class="text-center w-full"></td><td class="font-bold">OK</td></tr>
-                        <tr><td>Prevádzkový prúd kompresora (A)</td><td>Podľa štítku</td><td><input type="text" id="amp_on" value="5.4 A" class="text-center w-full text-red-600"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Kvalita vody vo vykurovacom okruhu (pH)</td><td>7.0 - 8.5</td><td><input type="text" id="w_ph" value="7.5" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Vákuovanie chladiaceho okruhu (bar)</td><td>Pod 0 bar</td><td><input type="text" id="tc_vacuum" value="-1.0 bar" class="text-center w-full font-bold text-red-600"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Množstvo dodatočne doplneného chladiva (kg)</td><td>Podľa dĺžky</td><td><input type="text" id="tc_refrig_add" value="0.0 kg" class="text-center w-full font-bold"></td><td class="font-bold">OK</td></tr>
+                        <tr><td>Prevádzkový prúd kompresora (A)</td><td>Podľa štítku</td><td><input type="text" id="amp_on" value="5.4 A" class="text-center w-full font-bold text-red-600"></td><td class="font-bold">Vyhovuje</td></tr>
                     </tbody>
                 </table>
 
                 <div class="section-title">3. Elektrické napätia (Napájací zdroj)</div>
                 <table class="data-table break-inside-avoid text-center">
-                    <thead>
-                        <tr><th class="text-left">Stav zariadenia</th><th>L1 - L2 (V)</th><th>L2 - L3 (V)</th><th>L3 - L1 (V)</th><th>L1 - N (V)</th><th>L2 - N (V)</th><th>L3 - N (V)</th></tr>
-                    </thead>
+                    <thead><tr><th class="text-left">Stav zariadenia</th><th>L1 - L2 (V)</th><th>L2 - L3 (V)</th><th>L3 - L1 (V)</th><th>L1 - N (V)</th><th>L2 - N (V)</th><th>L3 - N (V)</th></tr></thead>
                     <tbody>
                         <tr><td class="text-left font-bold">Vypnuté (OFF)</td><td><input type="text" id="v12o" class="text-center w-full" value="0"></td><td><input type="text" id="v23o" class="text-center w-full" value="0"></td><td><input type="text" id="v31o" class="text-center w-full" value="0"></td><td><input type="text" id="v1no" class="text-center w-full" value="0"></td><td><input type="text" id="v2no" class="text-center w-full" value="0"></td><td><input type="text" id="v3no" class="text-center w-full" value="0"></td></tr>
                         <tr><td class="text-left font-bold text-red-600">Zapnuté (ON)</td><td><input type="text" id="v12" class="text-center w-full font-bold" value="400"></td><td><input type="text" id="v23" class="text-center w-full font-bold" value="402"></td><td><input type="text" id="v31" class="text-center w-full font-bold" value="401"></td><td><input type="text" id="v1n" class="text-center w-full font-bold" value="230"></td><td><input type="text" id="v2n" class="text-center w-full font-bold" value="232"></td><td><input type="text" id="v3n" class="text-center w-full font-bold" value="231"></td></tr>
@@ -244,42 +227,81 @@
 
             <!-- === PLYNOVÝ KOTOL === -->
             <div id="section-plyn" class="device-section">
+                <div class="section-title">1. Údaje o zariadení (Plynový kotol)</div>
+                <table class="data-table break-inside-avoid">
+                    <thead><tr><th style="width: 25%">Časť</th><th style="width: 35%">Značka / Model</th><th style="width: 40%">Sériové číslo (S/N)</th></tr></thead>
+                    <tbody>
+                        <tr><td class="font-bold text-slate-700">Plynový kotol</td><td><input type="text" id="model_plyn" placeholder="Zadajte model"></td><td><input type="text" id="sn_plyn" placeholder="Zadajte SN"></td></tr>
+                        <tr><td class="font-bold text-slate-700">Regulácia / Termostat</td><td><input type="text" id="model_reg_plyn" placeholder="Zadajte model"></td><td><input type="text" id="sn_reg_plyn" placeholder="Zadajte SN"></td></tr>
+                    </tbody>
+                </table>
+
                 <div class="section-title">2. Výsledky meraní a skúšok (Plyn)</div>
                 <table class="data-table break-inside-avoid">
                     <thead><tr><th style="width: 45%">Predmet kontroly</th><th style="width: 20%">Predpísané</th><th style="width: 20%">Namerané</th><th style="width: 15%">Výsledok</th></tr></thead>
                     <tbody>
-                        <tr><td>Tlak plynu na vstupe (HUP)</td><td>1.8 - 2.5 kPa</td><td><input type="text" id="g_tlak" value="2.1 kPa" class="text-center w-full"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Tesnosť spojov (detektor)</td><td>0 ppm</td><td class="text-center">0 ppm</td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Koncentrácia CO v spalinách</td><td>&lt; 100 ppm</td><td><input type="text" id="g_co" value="45 ppm" class="text-center w-full"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Koncentrácia CO2 v spalinách</td><td>8.5 - 9.5 %</td><td><input type="text" id="g_co2" value="9.2 %" class="text-center w-full"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Vypočítaná účinnosť spaľovania</td><td>&gt; 95 %</td><td><input type="text" id="g_eff" value="97.5 %" class="text-center w-full"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Tlak plynu na vstupe (HUP)</td><td>1.8 - 2.5 kPa</td><td><input type="text" id="g_tlak" value="2.1 kPa" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Tesnosť spojov (detektor)</td><td>0 ppm</td><td><input type="text" id="g_tesnost" value="0 ppm" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Koncentrácia CO v spalinách</td><td>&lt; 100 ppm</td><td><input type="text" id="g_co" value="14 ppm" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Ťah komína / Teplota spalín</td><td>min. 3 Pa</td><td><input type="text" id="g_tah" value="12 Pa" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Funkcia blokovacích prvkov</td><td>vypnutie &lt; 1 s</td><td><input type="text" id="g_blok" value="0.5 s" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Tlak vo vykurovacej sústave</td><td>1.0 - 2.0 bar</td><td><input type="text" id="g_tlakvody" value="1.5 bar" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Kontrola expanznej nádoby a regulácie</td><td>Funkčná / Plynulá</td><td><input type="text" id="g_expanz" value="OK" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Kontrola horáka a výmenníka</td><td>Čisté</td><td><input type="text" id="g_horak" value="Bez závad" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
                     </tbody>
                 </table>
             </div>
             
             <!-- === ELEKTRICKÝ KOTOL === -->
             <div id="section-elektro" class="device-section">
+                <div class="section-title">1. Údaje o zariadení (Elektrický kotol)</div>
+                <table class="data-table break-inside-avoid">
+                    <thead><tr><th style="width: 25%">Časť</th><th style="width: 35%">Značka / Model</th><th style="width: 40%">Sériové číslo (S/N)</th></tr></thead>
+                    <tbody>
+                        <tr><td class="font-bold text-slate-700">Elektrický kotol</td><td><input type="text" id="model_el" placeholder="Zadajte model"></td><td><input type="text" id="sn_el" placeholder="Zadajte SN"></td></tr>
+                        <tr><td class="font-bold text-slate-700">Zásobník TÚV / Príslušenstvo</td><td><input type="text" id="model_bojler" placeholder="Zadajte model (voliteľné)"></td><td><input type="text" id="sn_bojler" placeholder="Zadajte SN"></td></tr>
+                    </tbody>
+                </table>
+
                 <div class="section-title">2. Výsledky meraní a skúšok (Elektro)</div>
                 <table class="data-table break-inside-avoid">
-                    <thead><tr><th style="width: 45%">Predmet kontroly</th><th style="width: 20%">Fáza L1</th><th style="width: 20%">Fáza L2</th><th style="width: 15%">Fáza L3</th></tr></thead>
+                    <thead><tr><th style="width: 45%">Predmet kontroly</th><th style="width: 20%">Predpísané</th><th style="width: 20%">Namerané / Stav</th><th style="width: 15%">Výsledok</th></tr></thead>
                     <tbody>
-                        <tr><td class="font-bold">Odber prúdu v plnej záťaži (A)</td><td><input type="text" id="e_l1" value="13.2" class="text-center w-full"></td><td><input type="text" id="e_l2" value="13.1" class="text-center w-full"></td><td><input type="text" id="e_l3" value="13.3" class="text-center w-full"></td></tr>
+                        <tr><td>Tlak vo vykurovacej sústave</td><td>1.0 - 2.0 bar</td><td><input type="text" id="e_tlakvody" value="1.5 bar" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Kontrola expanznej nádoby a čerpadla</td><td>Funkčné</td><td><input type="text" id="e_expanz" value="OK" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Odber prúdu v plnej záťaži - Fáza L1 (A)</td><td>Podľa výkonu</td><td><input type="text" id="e_l1" value="13.2 A" class="text-center w-full font-bold text-red-600"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Odber prúdu v plnej záťaži - Fáza L2 (A)</td><td>Podľa výkonu</td><td><input type="text" id="e_l2" value="13.1 A" class="text-center w-full font-bold text-red-600"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Odber prúdu v plnej záťaži - Fáza L3 (A)</td><td>Podľa výkonu</td><td><input type="text" id="e_l3" value="13.3 A" class="text-center w-full font-bold text-red-600"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Prierez napájacieho kábla a istenie</td><td>Zodpovedá normám</td><td><input type="text" id="e_kabel" value="OK" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Skúška bezpečnostného termostatu</td><td>Vypnutie pri 95°C</td><td><input type="text" id="e_bezp_term" value="OK" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Kontrola poistného ventilu (UK)</td><td>2.5 - 3.0 bar</td><td><input type="text" id="e_poistny" value="2.5 bar" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
                     </tbody>
                 </table>
             </div>
 
             <!-- === KOTOL NA PEVNÉ PALIVO === -->
             <div id="section-pevne" class="device-section">
+                <div class="section-title">1. Údaje o zariadení (Kotol na pevné palivo)</div>
+                <table class="data-table break-inside-avoid">
+                    <thead><tr><th style="width: 25%">Časť</th><th style="width: 35%">Značka / Model</th><th style="width: 40%">Sériové číslo (S/N)</th></tr></thead>
+                    <tbody>
+                        <tr><td class="font-bold text-slate-700">Kotol na pevné palivo</td><td><input type="text" id="model_pevne" placeholder="Zadajte model"></td><td><input type="text" id="sn_pevne" placeholder="Zadajte SN"></td></tr>
+                        <tr><td class="font-bold text-slate-700">Zmiešavacia skupina / Regulácia</td><td><input type="text" id="model_reg_pevne" placeholder="Zadajte model"></td><td><input type="text" id="sn_reg_pevne" placeholder="Zadajte SN"></td></tr>
+                    </tbody>
+                </table>
+
                 <div class="section-title">2. Výsledky meraní a skúšok (Pevné palivo)</div>
                 <table class="data-table break-inside-avoid">
                     <thead><tr><th style="width: 45%">Predmet kontroly</th><th style="width: 20%">Predpísané</th><th style="width: 20%">Namerané / Stav</th><th style="width: 15%">Výsledok</th></tr></thead>
                     <tbody>
-                        <tr><td>Teplota spalín (pri ustálenej prevádzke)</td><td>&lt; 200 °C</td><td><input type="text" id="p_temp_spalin" value="165 °C" class="text-center w-full text-red-600 font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Ťah komína (meraný)</td><td>min. 15 Pa</td><td><input type="text" id="p_tah" value="18 Pa" class="text-center w-full"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Teplota vratnej vody (ochrana spiatočky)</td><td>min. 55 °C</td><td><input type="text" id="p_vratna" value="60 °C" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Tlak vo vykurovacej sústave</td><td>1.0 - 2.0 bar</td><td><input type="text" id="p_tlakvody" value="1.5 bar" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Teplota spalín (pri ustálenej prevádzke)</td><td>&lt; 200 °C</td><td><input type="text" id="p_temp_spalin" value="165 °C" class="text-center w-full font-bold text-red-600"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Ťah komína (meraný)</td><td>min. 15 Pa</td><td><input type="text" id="p_tah" value="18 Pa" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Teplota vratnej vody (ochrana spiatočky)</td><td>min. 55 °C</td><td><input type="text" id="p_vratna" value="60 °C" class="text-center w-full font-bold text-red-600"></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Funkčnosť zmiešavacieho ventilu</td><td>Plynulá</td><td class="text-center"><input type="checkbox" id="p_zmiesavac" class="checkbox-custom" checked></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Zapojenie chladiacej slučky (DBV ventil)</td><td>Funkčné</td><td class="text-center"><input type="checkbox" id="p_slucka" class="checkbox-custom" checked></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Poistný ventil ústredného kúrenia (bar)</td><td>2.5 - 3.0 bar</td><td><input type="text" id="p_poistny" value="2.5 bar" class="text-center w-full"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Poistný ventil ústredného kúrenia</td><td>2.5 - 3.0 bar</td><td><input type="text" id="p_poistny" value="2.5 bar" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Kontrola dymovodu a tesnosti</td><td>Bez závad</td><td><input type="text" id="p_dymovod" value="OK" class="text-center w-full font-bold"></td><td class="font-bold">Vyhovuje</td></tr>
                     </tbody>
                 </table>
             </div>
