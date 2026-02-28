@@ -33,7 +33,6 @@
         .signature-line { border-top: 1px solid #000; width: 100%; text-align: center; font-size: 9px; font-weight: 700; padding-top: 3px; margin-top: auto;}
         .signature-pad { border: 1px dashed #cbd5e1; background: #fafafa; width: 100%; height: 75px; touch-action: none; }
 
-        /* Foto mriežka */
         .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; }
         .photo-item { border: 1px solid #cbd5e1; position: relative; aspect-ratio: 4/3; overflow: hidden; background: #eee; border-radius: 4px; }
         .photo-item img { width: 100%; height: 100%; object-fit: cover; }
@@ -43,22 +42,16 @@
             body { background: white !important; padding: 0 !important; font-size: 8.5pt !important; line-height: 1.2 !important; }
             .no-print { display: none !important; }
             .page-container { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; padding: 0 !important; }
-            
             .print-header { display: flex !important; flex-direction: row !important; align-items: flex-end !important; justify-content: space-between !important; margin-bottom: 5px !important; }
             .print-left { text-align: left !important; }
             .print-center { text-align: center !important; }
             .print-right { text-align: right !important; }
-
             .print-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; }
             .form-box { border-color: #000 !important; padding: 6px !important; }
             .data-table th, .data-table td { border-color: #000 !important; padding: 2px 4px !important; }
             .section-title { margin: 10px 0 4px 0 !important; border-left-width: 4px !important; }
-            
-            /* Foto sekcia na novú stranu */
             .photo-section { page-break-before: always; margin-top: 15mm; }
             .photo-grid { grid-template-columns: repeat(2, 1fr) !important; gap: 6mm !important; }
-            .photo-item { border: 1px solid #000 !important; }
-
             .signature-pad { border: none !important; background: transparent !important; }
             .break-inside-avoid { page-break-inside: avoid; }
         }
@@ -127,7 +120,7 @@
 
             <!-- === TEPELNÉ ČERPADLO (TC) === -->
             <div id="section-tc" class="device-section active">
-                <div class="section-title">1. Údaje o zariadení</div>
+                <div class="section-title">1. Údaje o zariadení (Tepelné čerpadlo)</div>
                 <table class="data-table">
                     <thead><tr><th style="width: 25%">Časť</th><th style="width: 35%">Model / Typ</th><th style="width: 40%">Sériové číslo (S/N)</th></tr></thead>
                     <tbody>
@@ -136,18 +129,18 @@
                     </tbody>
                 </table>
 
-                <div class="section-title">2. Mechanické súčasti a kontroly</div>
+                <div class="section-title">2. Merania a kontroly</div>
                 <table class="data-table">
                     <tbody>
-                        <tr><td style="width: 25%">M1: <input type="text" id="m1"></td><td style="width: 25%">M2: <input type="text" id="m2"></td><td style="width: 25%">C1: <input type="text" id="c1"></td><td style="width: 25%">C2: <input type="text" id="c2"></td></tr>
+                        <tr><td>M1: <input type="text" id="m1"></td><td>M2: <input type="text" id="m2"></td><td>C1: <input type="text" id="c1"></td><td>C2: <input type="text" id="c2"></td></tr>
                     </tbody>
                 </table>
                 <table class="data-table">
                     <thead><tr><th style="width: 60%">Predmet kontroly</th><th style="width: 20%">Namerané</th><th style="width: 20%">Výsledok</th></tr></thead>
                     <tbody>
-                        <tr><td>Vákuovanie chladiaceho okruhu (bar)</td><td><input type="text" id="tc_vacuum" value="-1.0"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Vákuovanie okruhu (bar)</td><td><input type="text" id="tc_vacuum" value="-1.0"></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Doplnené chladivo (kg)</td><td><input type="text" id="tc_refrig_add" value="0.0"></td><td class="font-bold">OK</td></tr>
-                        <tr><td>Kvalita vody - pH okruhu</td><td><input type="text" id="w_ph" value="7.5"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Kvalita vody - pH</td><td><input type="text" id="w_ph" value="7.5"></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Magnetický filter funkčný</td><td class="text-center"><input type="checkbox" id="w_filt" class="checkbox-custom" checked></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Prevádzkový prúd (A)</td><td><input type="text" id="amp_on" value="5.4"></td><td class="font-bold">Vyhovuje</td></tr>
                     </tbody>
@@ -173,7 +166,6 @@
                         <tr><td class="font-bold">Regulácia</td><td><input type="text" id="model_reg_plyn"></td><td><input type="text" id="sn_reg_plyn"></td></tr>
                     </tbody>
                 </table>
-
                 <div class="section-title">2. Merania a skúšky</div>
                 <table class="data-table">
                     <thead><tr><th>Predmet merania</th><th>Namerané</th><th>Výsledok</th></tr></thead>
@@ -184,6 +176,7 @@
                         <tr><td>CO2 v spalinách (%)</td><td><input type="text" id="g_co2" value="9.2"></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Účinnosť spaľovania (%)</td><td><input type="text" id="g_eff" value="97.5"></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Ťah komína (Pa)</td><td><input type="text" id="g_tah" value="12"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Tlak vody v UK (bar)</td><td><input type="text" id="g_voda" value="1.5"></td><td class="font-bold">Vyhovuje</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -195,22 +188,18 @@
                     <thead><tr><th style="width: 25%">Časť</th><th style="width: 35%">Model</th><th style="width: 40%">Sériové číslo</th></tr></thead>
                     <tbody>
                         <tr><td class="font-bold">Elektrický kotol</td><td><input type="text" id="model_el"></td><td><input type="text" id="sn_el"></td></tr>
+                        <tr><td class="font-bold">Bojler / Prísl.</td><td><input type="text" id="model_bojler"></td><td><input type="text" id="sn_bojler"></td></tr>
                     </tbody>
                 </table>
-
-                <div class="section-title">2. Merania prúdu a kontroly</div>
+                <div class="section-title">2. Merania a kontroly</div>
                 <table class="data-table">
-                    <thead><tr><th>Fáza</th><th>Odber prúdu (A)</th><th>Výsledok</th></tr></thead>
+                    <thead><tr><th>Fáza / Predmet</th><th>Namerané</th><th>Výsledok</th></tr></thead>
                     <tbody>
-                        <tr><td class="font-bold">Fáza L1</td><td><input type="text" id="e_l1" value="13.2"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td class="font-bold">Fáza L2</td><td><input type="text" id="e_l2" value="13.1"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td class="font-bold">Fáza L3</td><td><input type="text" id="e_l3" value="13.3"></td><td class="font-bold">Vyhovuje</td></tr>
-                    </tbody>
-                </table>
-                <table class="data-table">
-                    <tbody>
-                        <tr><td style="width: 60%">Kontrola expanznej nádoby a tlaku</td><td class="text-center"><input type="checkbox" id="e_expanz" checked></td><td class="font-bold">OK</td></tr>
-                        <tr><td>Skúška bezpečnostného termostatu</td><td class="text-center"><input type="checkbox" id="e_bezp" checked></td><td class="font-bold">OK</td></tr>
+                        <tr><td>Fáza L1 (A)</td><td><input type="text" id="e_l1" value="13.2"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Fáza L2 (A)</td><td><input type="text" id="e_l2" value="13.1"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Fáza L3 (A)</td><td><input type="text" id="e_l3" value="13.3"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Expanzná nádoba (bar)</td><td><input type="text" id="e_expanz_val" value="1.5"></td><td class="font-bold">OK</td></tr>
+                        <tr><td>Bezp. termostat skúška</td><td class="text-center"><input type="checkbox" id="e_bezp" checked></td><td class="font-bold">OK</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -224,21 +213,19 @@
                         <tr><td class="font-bold">Kotol na pevné palivo</td><td><input type="text" id="model_pevne"></td><td><input type="text" id="sn_pevne"></td></tr>
                     </tbody>
                 </table>
-
-                <div class="section-title">2. Merania a bezpečnosť</div>
+                <div class="section-title">2. Merania</div>
                 <table class="data-table">
-                    <thead><tr><th>Predmet merania</th><th>Namerané</th><th>Výsledok</th></tr></thead>
+                    <thead><tr><th>Predmet</th><th>Namerané</th><th>Výsledok</th></tr></thead>
                     <tbody>
                         <tr><td>Teplota spalín (°C)</td><td><input type="text" id="p_temp_spalin" value="165"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Účinnosť (%)</td><td><input type="text" id="p_ucinnost" value="91"></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Ťah komína (Pa)</td><td><input type="text" id="p_tah" value="18"></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>Teplota vratnej vody (°C)</td><td><input type="text" id="p_vratna" value="60"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Chladiaca slučka funkčná</td><td class="text-center"><input type="checkbox" id="p_slucka" checked></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Chladiaca slučka zapojená</td><td class="text-center"><input type="checkbox" id="p_slucka" checked></td><td class="font-bold">Vyhovuje</td></tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- SPOLOČNÝ ZÁVER -->
+            <!-- ZÁVER -->
             <div class="break-inside-avoid">
                 <div class="section-title">Záver a podpisy</div>
                 <div class="border-2 border-green-600 py-2 text-center my-3 bg-green-50 font-bold uppercase text-[11px] text-green-700">
@@ -259,7 +246,7 @@
                 </div>
             </div>
 
-            <!-- FOTO SEKCIA (Na novej strane pri tlači) -->
+            <!-- FOTO SEKCIA -->
             <div class="photo-section break-inside-avoid">
                 <div class="section-title">Fotodokumentácia (strana 2)</div>
                 <div class="no-print mb-4 p-4 border-2 border-dashed border-red-100 rounded bg-red-50/50 text-center">
@@ -272,10 +259,11 @@
             </div>
 
             <!-- AKCIE -->
-            <div class="mt-12 no-print flex justify-center gap-4 pb-10">
-                <button type="button" id="btnSave" class="bg-black text-white px-8 py-3 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all">Uložiť do cloudu</button>
-                <button type="button" id="btnArchive" class="bg-slate-200 text-slate-800 px-8 py-3 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-slate-300 transition-all">Archív</button>
-                <button type="button" onclick="window.print()" class="bg-red-600 text-white px-8 py-3 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-red-700 transition-all">Vytlačiť PDF</button>
+            <div class="mt-12 no-print flex flex-wrap justify-center gap-3 pb-10 px-4">
+                <button type="button" id="btnSave" class="bg-black text-white px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-slate-800 transition-all">Uložiť</button>
+                <button type="button" id="btnArchive" class="bg-slate-200 text-slate-800 px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-slate-300 transition-all">Archív</button>
+                <button type="button" onclick="sendEmailToCustomer()" class="bg-blue-600 text-white px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-blue-700 transition-all flex items-center gap-2">📧 Poslať emailom</button>
+                <button type="button" onclick="window.print()" class="bg-red-600 text-white px-6 py-3 rounded-lg font-bold text-xs uppercase tracking-widest hover:bg-red-700 transition-all">Vytlačiť PDF</button>
             </div>
         </form>
     </div>
@@ -303,10 +291,7 @@
                 } else { await signInAnonymously(auth); }
             } catch (e) { console.error(e); }
         };
-        onAuthStateChanged(auth, (u) => { 
-            user = u; 
-            if(u) document.getElementById('authBadge').innerHTML = '<div class="pulse"></div> Cloud OK';
-        });
+        onAuthStateChanged(auth, (u) => { user = u; if(u) document.getElementById('authBadge').innerHTML = '<div class="pulse"></div> Cloud OK'; });
         initAuth();
 
         // Photos
@@ -346,6 +331,35 @@
 
         // Date Sync
         document.getElementById('date_inst').onchange = (e) => { const p = e.target.value.split('-'); if(p.length===3) document.getElementById('sig_date_display').innerText = `${p[2]}.${p[1]}.${p[0]}`; };
+
+        // Funkcia pre odoslanie mailu
+        window.sendEmailToCustomer = () => {
+            const email = document.getElementById('email').value.trim();
+            const pId = document.getElementById('protocolId').value;
+            const customer = document.getElementById('customer').value;
+            const device = document.getElementById('deviceSelector').options[document.getElementById('deviceSelector').selectedIndex].text;
+            
+            if(!email) return showToast("⚠️ Zadajte najskôr email zákazníka.");
+
+            const subject = `Spúšťací protokol ${pId} - Spektra install`;
+            const body = `Vážený zákazník ${customer},\n\nv prílohe Vám zasielame spúšťací protokol k zariadeniu: ${device}.\n\nČíslo protokolu: ${pId}\nDátum inštalácie: ${document.getElementById('date_inst').value}\n\nZariadenie bolo uvedené do prevádzky a je plne funkčné.\n\nS pozdravom,\nTím Spektra install s.r.o.`;
+
+            const shareData = {
+                title: subject,
+                text: body,
+                url: window.location.href // Odkaz na aplikáciu
+            };
+
+            if (navigator.share) {
+                // Pre mobilné zariadenia
+                navigator.share(shareData).catch(() => {
+                    window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+                });
+            } else {
+                // Pre PC
+                window.location.href = `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
+            }
+        };
 
         // Save
         document.getElementById('btnSave').onclick = async () => {
