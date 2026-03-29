@@ -3,10 +3,8 @@ import { initializeApp } from "firebase/app";
 import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "firebase/auth";
 import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "firebase/firestore";
 
-// Použitie systémovej konfigurácie namiesto prázdneho objektu
+// Systémová konfigurácia Firebase
 const firebaseConfig = JSON.parse(__firebase_config);
-
-// Inicializácia Firebase služieb
 const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
@@ -17,20 +15,39 @@ export default function App() {
     const [protocolId, setProtocolId] = useState('SP-2026/001');
     const [deviceType, setDeviceType] = useState('tc');
     const [photos, setPhotos] = useState([]);
+    
+    // Kompletný stav formulára so všetkými záznamami
     const [formData, setFormData] = useState({
         inst_company: 'Spektra install s.r.o.',
         inst_elec: '§22 č.o. 18122868',
         date_inst: new Date().toISOString().split('T')[0],
-        tc_vacuum: '-1.0 bar',
-        w_ph: '7.5',
-        tc_mag_filter: true,
         customer: '',
         address: '',
         phone: '',
-        email: ''
+        email: '',
+        ext_temp: '',
+        
+        // Údaje o zariadení
+        model_ext: '', sn_ext: '',
+        model_int: '', sn_int: '',
+        
+        // Kontroly
+        tc_placed: true,
+        tc_ground: true,
+        tc_mag_filter: true,
+        tc_vacuum: '-1.0 bar',
+        tc_refrig_add: '0.0 kg',
+        w_ph: '7.5',
+        amp_on: '',
+        
+        // Napätia - OFF
+        v12o: '', v23o: '', v31o: '', v1no: '', v2no: '', v3no: '',
+        // Napätia - ON
+        v12: '', v23: '', v31: '', v1n: '', v2n: '', v3n: '',
+        
+        notes: ''
     });
     
-    // Stavy pre UI
     const [isListModalOpen, setIsListModalOpen] = useState(false);
     const [savedProtocols, setSavedProtocols] = useState([]);
     const [isLoadingList, setIsLoadingList] = useState(false);
@@ -40,7 +57,6 @@ export default function App() {
     const canvasRef = useRef(null);
     const ctxRef = useRef(null);
 
-    // Logika autentifikácie podľa mandátu
     useEffect(() => {
         const initAuth = async () => {
             try {
@@ -50,7 +66,7 @@ export default function App() {
                     await signInAnonymously(auth);
                 }
             } catch (error) {
-                console.error("Chyba pri prihlasovaní:", error);
+                console.error("Auth error:", error);
             }
         };
         initAuth();
@@ -58,53 +74,32 @@ export default function App() {
         return () => unsubscribe();
     }, []);
 
-    // Inicializácia kresliaceho plátna pre podpis
     useEffect(() => {
         if (canvasRef.current && !isListModalOpen) {
             const canvas = canvasRef.current;
             canvas.width = canvas.offsetWidth;
             canvas.height = 120;
             const ctx = canvas.getContext('2d');
-            ctx.lineWidth = 2; // Mierne tenšia čiara pre jemnejší vzhľad
+            ctx.lineWidth = 1.5;
             ctx.lineCap = 'round';
             ctx.strokeStyle = "#000";
             ctxRef.current = ctx;
         }
-    }, [isListModalOpen]);
+    }, [isListModalOpen, deviceType]);
 
     const showToast = (msg) => {
         setToast({ show: true, msg });
         setTimeout(() => setToast({ show: false, msg: '' }), 4000);
     };
 
-    // Logika kreslenia podpisu
-    let isDrawing = false;
-    const getPos = (e) => {
-        const rect = canvasRef.current.getBoundingClientRect();
-        const clientX = e.clientX || (e.touches && e.touches[0].clientX);
-        const clientY = e.clientY || (e.touches && e.touches[0].clientY);
-        const x = clientX - rect.left;
-        const y = clientY - rect.top;
-        return { x, y };
+    const handleInputChange = (e) => {
+        const { id, value, type, checked } = e.target;
+        setFormData(prev => ({
+            ...prev,
+            [id]: type === 'checkbox' ? checked : value
+        }));
     };
 
-    const startDrawing = (e) => {
-        isDrawing = true;
-        const p = getPos(e);
-        ctxRef.current.beginPath();
-        ctxRef.current.moveTo(p.x, p.y);
-    };
-
-    const draw = (e) => {
-        if (!isDrawing) return;
-        const p = getPos(e);
-        ctxRef.current.lineTo(p.x, p.y);
-        ctxRef.current.stroke();
-    };
-
-    const stopDrawing = () => { isDrawing = false; };
-
-    // Firebase operácie
     const saveToCloud = async () => {
         if (!user) return showToast("⚠️ Cloud nepripojený.");
         if (!protocolId.trim()) return showToast("⚠️ Zadajte číslo protokolu!");
@@ -124,10 +119,7 @@ export default function App() {
         try {
             await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'protocols', safeId), data);
             showToast("✅ Protokol úspešne uložený!");
-        } catch (e) { 
-            console.error(e);
-            showToast("❌ Chyba: " + e.message); 
-        }
+        } catch (e) { showToast("❌ Chyba: " + e.message); }
     };
 
     const fetchProtocolsList = async () => {
@@ -136,28 +128,27 @@ export default function App() {
         try {
             const querySnapshot = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'protocols'));
             const list = [];
-            querySnapshot.forEach((doc) => {
-                list.push({ id: doc.id, ...doc.data() });
-            });
+            querySnapshot.forEach((doc) => { list.push({ id: doc.id, ...doc.data() }); });
             list.sort((a, b) => new Date(b.ts) - new Date(a.ts));
             setSavedProtocols(list);
-        } catch (e) { 
-            console.error(e);
-            showToast("❌ Chyba pri načítaní zoznamu"); 
-        }
+        } catch (e) { showToast("❌ Chyba pri načítaní zoznamu"); }
         setIsLoadingList(false);
     };
 
     const applyProtocol = (data, isNewCopy) => {
         setDeviceType(data.type || 'tc');
-        setFormData(data.content || {});
         
         if (isNewCopy) {
+            setFormData({
+                ...data.content,
+                customer: '', address: '', phone: '', email: '', ext_temp: '', notes: ''
+            });
             setProtocolId('');
             setPhotos([]);
             if (ctxRef.current) ctxRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-            showToast("✨ Dáta načítané ako šablóna pre nový protokol.");
+            showToast("✨ Načítané ako šablóna pre nový protokol.");
         } else {
+            setFormData(data.content || {});
             setProtocolId(data.displayId || data.id);
             setPhotos(data.photos || []);
             if (data.signature) {
@@ -173,78 +164,66 @@ export default function App() {
         setIsListModalOpen(false);
     };
 
-    const handlePhotoUpload = (e) => {
-        const files = Array.from(e.target.files);
-        files.forEach(file => {
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                setPhotos(prev => [...prev, ev.target.result]);
-            };
-            reader.readAsDataURL(file);
-        });
+    let isDrawing = false;
+    const startDrawing = (e) => {
+        isDrawing = true;
+        const rect = canvasRef.current.getBoundingClientRect();
+        const x = (e.clientX || e.touches[0].clientX) - rect.left;
+        const y = (e.clientY || e.touches[0].clientY) - rect.top;
+        ctxRef.current.beginPath();
+        ctxRef.current.moveTo(x, y);
+    };
+    const draw = (e) => {
+        if (!isDrawing) return;
+        const rect = canvasRef.current.getBoundingClientRect();
+        const x = (e.clientX || e.touches[0].clientX) - rect.left;
+        const y = (e.clientY || e.touches[0].clientY) - rect.top;
+        ctxRef.current.lineTo(x, y);
+        ctxRef.current.stroke();
     };
 
-    const filteredProtocols = savedProtocols.filter(p => 
-        (p.displayId || p.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-        (p.content?.customer || '').toLowerCase().includes(searchTerm.toLowerCase())
-    );
-
     return (
-        <div className="min-h-screen bg-slate-100 p-0 md:p-6 text-slate-900">
-            {/* Toast notifikácia */}
+        <div className="min-h-screen bg-slate-50 p-0 md:p-8 text-slate-800 font-normal">
             {toast.show && (
-                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-[100] font-normal animate-bounce text-center">
+                <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-[300] animate-bounce text-center">
                     {toast.msg}
                 </div>
             )}
 
-            {/* Modálne okno so zoznamom */}
             {isListModalOpen && (
-                <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
-                    <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
+                    <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
                         <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-2xl">
-                            <h3 className="font-normal uppercase text-lg tracking-tighter text-slate-700">Databáza protokolov</h3>
-                            <button onClick={() => setIsListModalOpen(false)} className="text-slate-400 hover:text-red-600 font-normal text-2xl">&times;</button>
+                            <span className="uppercase text-xs tracking-widest text-slate-400">Databáza protokolov</span>
+                            <button onClick={() => setIsListModalOpen(false)} className="text-slate-400 hover:text-red-600 text-2xl">&times;</button>
                         </div>
                         <div className="p-4 border-b">
                             <input 
                                 type="text" 
-                                placeholder="🔍 Hľadať podľa čísla alebo mena zákazníka..." 
-                                className="w-full px-4 py-3 bg-slate-100 rounded-xl outline-none focus:ring-2 focus:ring-red-500 transition-all font-normal"
+                                placeholder="🔍 Hľadať zákazníka alebo číslo..." 
+                                className="w-full px-4 py-3 bg-white rounded-xl outline-none border border-slate-200"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
                             />
                         </div>
-                        <div className="overflow-y-auto flex-grow p-2">
+                        <div className="overflow-y-auto flex-grow p-4">
                             {isLoadingList ? (
-                                <div className="text-center py-10 flex flex-col items-center gap-3">
-                                    <div className="w-8 h-8 border-2 border-red-600 border-t-transparent rounded-full animate-spin"></div>
-                                    <span className="font-normal text-slate-400">Načítavam cloud...</span>
-                                </div>
-                            ) : filteredProtocols.length === 0 ? (
-                                <div className="text-center py-10 text-slate-400 font-normal italic">Žiadne záznamy sa nenašli.</div>
+                                <div className="text-center py-10 text-slate-400 uppercase text-[10px]">Pripájanie...</div>
                             ) : (
-                                <div className="grid gap-2">
-                                    {filteredProtocols.map((p) => (
-                                        <div key={p.id} className="p-4 border rounded-xl hover:bg-slate-50 transition-colors flex justify-between items-center group">
+                                <div className="grid gap-3">
+                                    {savedProtocols.filter(p => 
+                                        (p.displayId || p.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
+                                        (p.content?.customer || '').toLowerCase().includes(searchTerm.toLowerCase())
+                                    ).map((p) => (
+                                        <div key={p.id} className="p-4 border border-slate-100 rounded-xl hover:bg-slate-50 flex justify-between items-center group">
                                             <div>
-                                                <div className="font-normal text-red-600">{p.displayId || p.id}</div>
-                                                <div className="font-normal text-slate-800">{p.content?.customer || 'Nezadané meno'}</div>
-                                                <div className="text-[10px] text-slate-400 font-normal uppercase">{new Date(p.ts).toLocaleDateString()} • {p.type === 'tc' ? 'Tepelné čerpadlo' : 'Plynový kotol'}</div>
+                                                <div className="text-red-600 font-normal">{p.displayId || p.id}</div>
+                                                <div className="text-slate-800">{p.content?.customer || 'Neznámy zákazník'}</div>
+                                                <div className="text-[10px] text-slate-400">{new Date(p.ts).toLocaleDateString()}</div>
                                             </div>
-                                            <div className="flex gap-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <button 
-                                                    onClick={() => applyProtocol(p, false)}
-                                                    className="bg-slate-900 text-white px-3 py-2 rounded-lg text-[10px] font-normal uppercase hover:bg-black"
-                                                >
-                                                    Otvoriť
-                                                </button>
-                                                <button 
-                                                    onClick={() => applyProtocol(p, true)}
-                                                    className="bg-red-600 text-white px-3 py-2 rounded-lg text-[10px] font-normal uppercase hover:bg-red-700"
-                                                >
-                                                    Šablóna
-                                                </button>
+                                            <div className="flex gap-2">
+                                                <button onClick={() => applyProtocol(p, false)} className="bg-slate-100 text-slate-600 px-3 py-2 rounded-lg text-[10px] uppercase">Otvoriť</button>
+                                                <button onClick={() => applyProtocol(p, true)} className="bg-red-50 text-red-600 px-3 py-2 rounded-lg text-[10px] uppercase">Šablóna</button>
                                             </div>
                                         </div>
                                     ))}
@@ -255,288 +234,274 @@ export default function App() {
                 </div>
             )}
 
-            <div className="page-container max-w-[950px] mx-auto bg-white shadow-2xl p-6 md:p-14 min-h-screen border border-slate-200 flex flex-col relative">
+            <div className="max-w-[850px] mx-auto bg-white p-6 md:p-12 min-h-screen flex flex-col relative border border-slate-200 print:border-none print:p-0">
                 
                 {/* HLAVIČKA */}
-                <div className="flex flex-col md:flex-row justify-between items-end border-b-[4px] border-red-600 pb-4 mb-8 gap-4 print:flex-row print:justify-between print:items-end">
-                    <div className="print-left">
-                        <h1 className="text-4xl tracking-tighter uppercase font-normal leading-none text-slate-800" style={{ fontFamily: 'Montserrat, sans-serif' }}>
-                            <span className="text-black">SPEKTRA</span> <span className="text-red-600">INSTALL</span>
+                <div className="flex flex-col md:flex-row justify-between items-end border-b-2 border-red-600 pb-6 mb-8 gap-4 print:flex-row">
+                    <div>
+                        <h1 className="text-4xl tracking-tighter uppercase leading-none text-slate-800" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                            SPEKTRA <span className="text-red-600 font-normal">INSTALL</span>
                         </h1>
-                        <div className="mt-2">
-                            <p className="text-[11px] text-slate-600 font-normal uppercase tracking-widest leading-relaxed">Rajecká Lesná 98, 013 15</p>
-                            <p className="text-[10px] text-slate-500 font-normal leading-relaxed">IČO: 53690036 | IČ DPH: SK2121459450</p>
-                            <p className="text-[9px] text-slate-400 font-normal leading-relaxed tracking-tight">Oprávnenie: 077/2/2021-PZ-S,O (OU,R,M)-Bd,f,g,h</p>
-                        </div>
-                        <div className="mt-1 no-print">
-                            <div className="flex items-center gap-1 text-[8px] font-normal text-slate-400">
-                                {user ? (
-                                    <><div className="pulse"></div> Cloud aktívny</>
-                                ) : (
-                                    <>Pripájanie...</>
-                                )}
-                            </div>
+                        <div className="mt-2 text-[11px] text-slate-500 font-normal uppercase tracking-widest leading-relaxed">
+                            <p>Rajecká Lesná 98, 013 15</p>
+                            <p className="text-[10px] text-slate-400">IČO: 53690036 | IČ DPH: SK2121459450</p>
                         </div>
                     </div>
                     
-                    <div className="flex flex-col items-center">
+                    <div className="flex flex-col items-center no-print">
                         <select 
                             value={deviceType}
                             onChange={(e) => setDeviceType(e.target.value)}
-                            className="no-print border border-slate-200 rounded-lg px-4 py-2 text-xs font-normal text-red-600 bg-white cursor-pointer shadow-sm hover:border-red-300 transition-all outline-none mb-2"
+                            className="border border-slate-200 rounded-lg px-4 py-2 text-xs text-red-600 bg-white outline-none mb-1"
                         >
                             <option value="tc">Tepelné čerpadlo (TČ)</option>
                             <option value="plyn">Plynový kotol</option>
                             <option value="elektro">Elektrický kotol</option>
-                            <option value="pevne">Kotol na pevné palivo</option>
                         </select>
-                        <div className="hidden print:block font-normal text-red-600 text-[18px] uppercase tracking-[0.3em] mb-2 text-center">
-                            {deviceType === 'tc' ? 'Tepelné čerpadlo' : deviceType === 'plyn' ? 'Plynový kotol' : 'Elektrický kotol'}
+                        <div className="text-[8px] text-slate-300 uppercase tracking-widest">
+                            {user ? "🟢 Cloud pripojený" : "⚪ Odpojené"}
                         </div>
                     </div>
 
-                    <div className="print-right flex flex-col items-end">
-                        <h2 className="font-normal text-[16px] uppercase text-slate-700 mb-1 tracking-tighter italic">Spúšťací protokol</h2>
-                        <div className="border border-slate-900 px-4 py-1.5 flex items-center bg-white font-normal text-[14px] shadow-sm">
-                            <span className="text-slate-400 mr-2 uppercase text-[10px] font-normal">Číslo:</span>
+                    <div className="flex flex-col items-end">
+                        <h2 className="text-[15px] uppercase text-slate-300 mb-1 tracking-widest italic">Spúšťací protokol</h2>
+                        <div className="border border-slate-900 px-4 py-2 flex items-center bg-white font-normal text-[14px]">
+                            <span className="text-slate-300 mr-2 uppercase text-[10px]">Číslo:</span>
                             <input 
                                 type="text" 
                                 value={protocolId}
                                 onChange={(e) => setProtocolId(e.target.value)}
-                                className="w-28 font-normal text-red-600 text-right outline-none bg-transparent"
+                                className="w-28 text-red-600 text-right outline-none"
                             />
                             <button 
                                 type="button"
                                 onClick={() => { setIsListModalOpen(true); fetchProtocolsList(); }} 
-                                className="no-print ml-4 hover:scale-125 transition-transform text-slate-300 hover:text-red-600"
-                                title="Prehliadať uložené protokoly"
+                                className="no-print ml-4 text-slate-200 hover:text-red-600"
                             >
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-                                </svg>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <div className="flex-grow flex flex-col">
-                    {/* ÚDAJE */}
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8 mb-6">
-                        <div className="border border-slate-200 p-4 rounded-lg bg-white shadow-sm">
-                            <h3 className="text-[10px] font-normal uppercase text-slate-400 border-b pb-2 mb-4 tracking-widest">ZHOTOVITEĽ / INŠTALÁCIA</h3>
-                            <div className="grid gap-3">
-                                <div className="flex justify-between items-center text-[11px]">
-                                    <span className="font-normal text-slate-500 uppercase">Spoločnosť</span>
-                                    <input 
-                                        type="text" 
-                                        value={formData.inst_company || ''} 
-                                        onChange={(e) => setFormData({...formData, inst_company: e.target.value})}
-                                        className="font-normal text-right outline-none w-1/2 border-b border-transparent focus:border-red-200"
-                                    />
+                <form className="flex-grow flex flex-col gap-10">
+                    {/* 01. VŠEOBECNÉ INFO */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                        <div className="border border-slate-100 p-6 rounded-2xl bg-white">
+                            <h3 className="text-[10px] uppercase text-slate-300 border-b pb-2 mb-6 tracking-[0.2em]">Zhotoviteľ a inštalácia</h3>
+                            <div className="grid gap-4 text-[12px]">
+                                <div className="flex justify-between border-b border-slate-50 pb-1">
+                                    <span className="text-slate-400 uppercase">Spoločnosť</span>
+                                    <input type="text" id="inst_company" value={formData.inst_company} onChange={handleInputChange} className="text-right outline-none w-1/2" />
                                 </div>
-                                <div className="flex justify-between items-center text-[11px]">
-                                    <span className="font-normal text-slate-500 uppercase">Technik</span>
-                                    <input 
-                                        type="text" 
-                                        value={formData.inst_elec || ''} 
-                                        onChange={(e) => setFormData({...formData, inst_elec: e.target.value})}
-                                        className="font-normal text-right outline-none w-1/2 border-b border-transparent focus:border-red-200"
-                                    />
+                                <div className="flex justify-between border-b border-slate-50 pb-1">
+                                    <span className="text-slate-400 uppercase">Technik</span>
+                                    <input type="text" id="inst_elec" value={formData.inst_elec} onChange={handleInputChange} className="text-right outline-none w-1/2" />
                                 </div>
-                                <div className="flex justify-between items-center text-[11px]">
-                                    <span className="font-normal text-slate-500 uppercase">Dátum</span>
-                                    <input 
-                                        type="date" 
-                                        value={formData.date_inst || ''} 
-                                        onChange={(e) => setFormData({...formData, date_inst: e.target.value})}
-                                        className="font-normal text-right outline-none bg-transparent"
-                                    />
+                                <div className="flex justify-between border-b border-slate-50 pb-1">
+                                    <span className="text-slate-400 uppercase">Dátum</span>
+                                    <input type="date" id="date_inst" value={formData.date_inst} onChange={handleInputChange} className="text-right outline-none" />
+                                </div>
+                                <div className="flex justify-between">
+                                    <span className="text-slate-400 uppercase">Vonk. teplota (°C)</span>
+                                    <input type="text" id="ext_temp" value={formData.ext_temp} onChange={handleInputChange} className="text-right outline-none w-1/4" placeholder="5" />
                                 </div>
                             </div>
                         </div>
-                        <div className="border border-slate-200 p-4 rounded-lg bg-white shadow-sm">
-                            <h3 className="text-[10px] font-normal uppercase text-slate-400 border-b pb-2 mb-4 tracking-widest">PREVÁDZKOVATEĽ / ZÁKAZNÍK</h3>
-                            <div className="grid gap-3">
-                                {['customer', 'address', 'phone', 'email'].map(field => (
-                                    <div key={field} className="flex justify-between items-center text-[11px]">
-                                        <span className="font-normal text-slate-500 uppercase">{field === 'customer' ? 'Meno' : field === 'address' ? 'Adresa' : field === 'phone' ? 'Mobil' : 'Email'}</span>
-                                        <input 
-                                            type="text" 
-                                            value={formData[field] || ''} 
-                                            onChange={(e) => setFormData({...formData, [field]: e.target.value})}
-                                            className="font-normal text-right outline-none w-1/2 border-b border-transparent focus:border-red-200"
-                                            placeholder={`Zadajte ${field}`}
-                                        />
+                        <div className="border border-slate-100 p-6 rounded-2xl bg-white">
+                            <h3 className="text-[10px] uppercase text-slate-300 border-b pb-2 mb-6 tracking-[0.2em]">Zákazník / Užívateľ</h3>
+                            <div className="grid gap-4 text-[12px]">
+                                {['customer', 'address', 'phone', 'email'].map(f => (
+                                    <div key={f} className="flex justify-between border-b border-slate-50 pb-1">
+                                        <span className="text-slate-400 uppercase">{f === 'customer' ? 'Meno' : f === 'address' ? 'Adresa' : f === 'phone' ? 'Mobil' : 'Email'}</span>
+                                        <input type="text" id={f} value={formData[f] || ''} onChange={handleInputChange} className="text-right outline-none w-1/2" placeholder="..." />
                                     </div>
                                 ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* DYNAMICKÝ OBSAH - TČ */}
-                    {deviceType === 'tc' && (
-                        <div className="mb-6">
-                            <h4 className="font-normal uppercase text-xs border-l-4 border-red-600 pl-3 mb-4 tracking-widest italic text-slate-500">1. Údaje o zariadení a kontroly (TČ)</h4>
-                            <div className="grid gap-6">
-                                <table className="w-full text-xs border-collapse">
-                                    <thead>
-                                        <tr className="bg-slate-50">
-                                            <th className="border p-2 text-left font-normal text-slate-600">Časť</th>
-                                            <th className="border p-2 text-left font-normal text-slate-600">Model / Typ</th>
-                                            <th className="border p-2 text-left font-normal text-slate-600">Sériové číslo</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {['Vonkajšia j.', 'Vnútorná j.'].map((part) => (
-                                            <tr key={part}>
-                                                <td className="border p-2 font-normal text-slate-500">{part}</td>
-                                                <td className="border p-2">
-                                                    <input 
-                                                        type="text" 
-                                                        value={formData[`model_${part.includes('Vonk') ? 'ext' : 'int'}`] || ''}
-                                                        onChange={(e) => setFormData({...formData, [`model_${part.includes('Vonk') ? 'ext' : 'int'}`]: e.target.value})}
-                                                        className="w-full outline-none font-normal bg-transparent" 
-                                                    />
-                                                </td>
-                                                <td className="border p-2">
-                                                    <input 
-                                                        type="text" 
-                                                        value={formData[`sn_${part.includes('Vonk') ? 'ext' : 'int'}`] || ''}
-                                                        onChange={(e) => setFormData({...formData, [`sn_${part.includes('Vonk') ? 'ext' : 'int'}`]: e.target.value})}
-                                                        className="w-full outline-none font-normal bg-transparent" 
-                                                    />
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
-                                <div className="grid md:grid-cols-2 gap-4">
-                                    <div className="border p-4 rounded-xl flex justify-between items-center bg-white shadow-sm border-slate-100">
-                                        <span className="font-normal text-[10px] uppercase text-slate-500">Vákuovanie chladiaceho okruhu</span>
-                                        <input type="text" value={formData.tc_vacuum} onChange={(e) => setFormData({...formData, tc_vacuum: e.target.value})} className="font-normal text-red-600 text-right outline-none w-20 bg-transparent" />
+                    {/* 02. ÚDAJE O ZARIADENÍ */}
+                    <div className="border border-slate-100 p-6 rounded-2xl">
+                        <h3 className="text-[10px] uppercase text-slate-300 border-b pb-2 mb-6 tracking-[0.2em]">03. Údaje o zariadení</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                            <div className="bg-slate-50 p-4 rounded-xl">
+                                <span className="text-[10px] uppercase text-red-400 block mb-3 italic">Vonkajšia jednotka</span>
+                                <div className="grid gap-3 text-[11px]">
+                                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                                        <span className="text-slate-400 uppercase">Model</span>
+                                        <input type="text" id="model_ext" value={formData.model_ext} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent" />
                                     </div>
-                                    <div className="border p-4 rounded-xl flex justify-between items-center bg-white shadow-sm border-slate-100">
-                                        <span className="font-normal text-[10px] uppercase text-slate-500">pH vody vo vykurovaní (7.0-8.5)</span>
-                                        <input type="text" value={formData.w_ph} onChange={(e) => setFormData({...formData, w_ph: e.target.value})} className="font-normal text-slate-600 text-right outline-none w-20 bg-transparent" />
+                                    <div className="flex justify-between">
+                                        <span className="text-slate-400 uppercase">Sériové číslo</span>
+                                        <input type="text" id="sn_ext" value={formData.sn_ext} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent" />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="bg-slate-50 p-4 rounded-xl">
+                                <span className="text-[10px] uppercase text-red-400 block mb-3 italic">Vnútorná jednotka</span>
+                                <div className="grid gap-3 text-[11px]">
+                                    <div className="flex justify-between border-b border-slate-200 pb-1">
+                                        <span className="text-slate-400 uppercase">Model</span>
+                                        <input type="text" id="model_int" value={formData.model_int} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent" />
+                                    </div>
+                                    <div className="flex justify-between">
+                                        <span className="text-slate-400 uppercase">Sériové číslo</span>
+                                        <input type="text" id="sn_int" value={formData.sn_int} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent" />
                                     </div>
                                 </div>
                             </div>
                         </div>
-                    )}
+                    </div>
 
-                    <div className="mt-6 border-l-4 border-slate-400 pl-3 mb-4">
-                        <h4 className="font-normal uppercase text-xs tracking-widest italic text-slate-500">Celkové hodnotenie a záver</h4>
-                        <p className="text-[11px] text-justify mt-2 leading-relaxed text-slate-500 font-normal">
+                    {/* 03. INŠTALÁCIA A KONTROLA */}
+                    <div className="border border-slate-100 p-6 rounded-2xl">
+                        <h3 className="text-[10px] uppercase text-slate-300 border-b pb-2 mb-6 tracking-[0.2em]">04. Inštalácia a kontrola</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 text-[11px]">
+                            <div className="flex justify-between items-center border-b pb-1">
+                                <span className="text-slate-500 uppercase">Jednotka umiestnená podľa návodu</span>
+                                <input type="checkbox" id="tc_placed" checked={formData.tc_placed} onChange={handleInputChange} className="w-4 h-4 accent-red-600" />
+                            </div>
+                            <div className="flex justify-between items-center border-b pb-1">
+                                <span className="text-slate-500 uppercase">Všetky časti riadne uzemnené</span>
+                                <input type="checkbox" id="tc_ground" checked={formData.tc_ground} onChange={handleInputChange} className="w-4 h-4 accent-red-600" />
+                            </div>
+                            <div className="flex justify-between items-center border-b pb-1">
+                                <span className="text-slate-500 uppercase">Funkčný magnetický filter</span>
+                                <input type="checkbox" id="tc_mag_filter" checked={formData.tc_mag_filter} onChange={handleInputChange} className="w-4 h-4 accent-red-600" />
+                            </div>
+                            <div className="flex justify-between items-center border-b pb-1">
+                                <span className="text-slate-500 uppercase">Kvalita vody (pH 7.0 - 8.5)</span>
+                                <input type="text" id="w_ph" value={formData.w_ph} onChange={handleInputChange} className="w-16 text-right outline-none" />
+                            </div>
+                            <div className="flex justify-between items-center border-b pb-1">
+                                <span className="text-red-500 uppercase">Vákuovanie (hodnota bar)</span>
+                                <input type="text" id="tc_vacuum" value={formData.tc_vacuum} onChange={handleInputChange} className="w-20 text-right outline-none text-red-600" />
+                            </div>
+                            <div className="flex justify-between items-center border-b pb-1">
+                                <span className="text-red-500 uppercase">Doplnené chladivo (kg)</span>
+                                <input type="text" id="tc_refrig_add" value={formData.tc_refrig_add} onChange={handleInputChange} className="w-16 text-right outline-none" />
+                            </div>
+                        </div>
+                    </div>
+
+                    {/* 04. ELEKTRICKÉ NAPÄTIA */}
+                    <div className="border border-slate-100 p-6 rounded-2xl">
+                        <h3 className="text-[10px] uppercase text-slate-300 border-b pb-2 mb-6 tracking-[0.2em]">05. Elektrické napätia (Napájací zdroj)</h3>
+                        <div className="overflow-x-auto">
+                            <table className="w-full text-center text-[10px] border-collapse">
+                                <thead>
+                                    <tr className="bg-slate-50">
+                                        <th className="p-2 border border-slate-100 font-normal text-slate-400">STAV</th>
+                                        <th className="p-2 border border-slate-100 font-normal text-slate-400">L1-L2 (V)</th>
+                                        <th className="p-2 border border-slate-100 font-normal text-slate-400">L2-L3 (V)</th>
+                                        <th className="p-2 border border-slate-100 font-normal text-slate-400">L3-L1 (V)</th>
+                                        <th className="p-2 border border-slate-100 font-normal text-slate-400">L1-N (V)</th>
+                                        <th className="p-2 border border-slate-100 font-normal text-slate-400">L2-N (V)</th>
+                                        <th className="p-2 border border-slate-100 font-normal text-slate-400">L3-N (V)</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr>
+                                        <td className="p-2 border border-slate-100 bg-slate-50 text-slate-400 uppercase">OFF</td>
+                                        {['v12o', 'v23o', 'v31o', 'v1no', 'v2no', 'v3no'].map(f => (
+                                            <td key={f} className="p-1 border border-slate-100"><input type="text" id={f} value={formData[f]} onChange={handleInputChange} className="w-full text-center outline-none" /></td>
+                                        ))}
+                                    </tr>
+                                    <tr>
+                                        <td className="p-2 border border-slate-100 bg-rose-50 text-red-400 uppercase">ON</td>
+                                        {['v12', 'v23', 'v31', 'v1n', 'v2n', 'v3n'].map(f => (
+                                            <td key={f} className="p-1 border border-slate-100"><input type="text" id={f} value={formData[f]} onChange={handleInputChange} className="w-full text-center outline-none text-red-600" /></td>
+                                        ))}
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                        <div className="mt-4 flex justify-end items-center text-[11px]">
+                            <span className="text-slate-400 uppercase mr-4">Prevádzkový prúd kompresora (A):</span>
+                            <input type="text" id="amp_on" value={formData.amp_on} onChange={handleInputChange} className="w-20 border-b outline-none text-right font-normal text-red-600" placeholder="5.4" />
+                        </div>
+                    </div>
+
+                    <div className="p-6 border-l-4 border-red-600 bg-slate-50 italic">
+                        <span className="text-[9px] uppercase tracking-widest text-red-600 block mb-2">Celkové hodnotenie a záver</span>
+                        <p className="text-[11px] text-justify leading-relaxed text-slate-500">
                             Zariadenie je nainštalované podľa podkladov výrobcu, boli dodržané všetky platné predpisy a normy. Po skúšobnej prevádzke trvajúcej cca 2 hodiny zariadenie nevykazuje žiadne chyby ani nedostatky a je pripravené na bezpečnú prevádzku.
                         </p>
                     </div>
 
-                    <div className="border border-green-600 py-6 text-center my-6 bg-green-50 rounded-2xl shadow-sm">
-                        <h3 className="text-green-700 font-normal uppercase text-[15px] tracking-[0.3em] m-0 italic">Zariadenie je spôsobilé bezpečnej prevádzky</h3>
+                    <div className="border border-green-600 py-6 text-center bg-green-50 rounded-2xl shadow-sm">
+                        <h3 className="text-green-700 uppercase text-[14px] tracking-[0.4em] m-0 italic">Zariadenie je spôsobilé bezpečnej prevádzky</h3>
                     </div>
 
                     {/* PODPISY */}
-                    <div className="mt-auto grid grid-cols-1 md:grid-cols-3 gap-12 pt-10 pb-6 border-t border-slate-100 items-end">
+                    <div className="mt-auto grid grid-cols-1 md:grid-cols-3 gap-12 pt-12 pb-6 border-t border-slate-100 items-end">
                         <div className="text-center flex flex-col justify-end">
-                            <div className="font-normal text-xl mb-2 text-slate-700 tracking-tighter italic">
+                            <div className="text-lg mb-2 text-slate-700 italic">
                                 {formData.date_inst ? new Date(formData.date_inst).toLocaleDateString() : '—'}
                             </div>
-                            <div className="border-t border-slate-300 pt-2 font-normal text-[9px] uppercase tracking-widest text-slate-400">Dátum</div>
+                            <div className="border-t border-slate-200 pt-2 text-[9px] uppercase tracking-widest text-slate-300">Dátum</div>
                         </div>
                         <div className="relative text-center flex flex-col items-center justify-end">
                             <canvas 
                                 ref={canvasRef}
-                                onMouseDown={startDrawing}
-                                onMouseMove={draw}
-                                onMouseUp={stopDrawing}
-                                onMouseLeave={stopDrawing}
-                                onTouchStart={startDrawing}
-                                onTouchMove={draw}
-                                onTouchEnd={stopDrawing}
-                                className="signature-pad mb-2 shadow-inner w-full bg-slate-50 border border-slate-100 rounded-xl cursor-crosshair h-32" 
+                                onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={() => isDrawing = false} onMouseLeave={() => isDrawing = false}
+                                onTouchStart={(e) => { startDrawing(e); e.preventDefault(); }} onTouchMove={(e) => { draw(e); e.preventDefault(); }}
+                                className="mb-2 w-full bg-slate-50 border border-slate-100 rounded-xl cursor-crosshair h-32" 
                             />
-                            <button type="button" onClick={() => ctxRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)} className="no-print absolute -top-8 left-0 text-[10px] font-normal text-red-600 bg-red-50 px-3 py-1 rounded-full border border-red-100 hover:bg-red-100 transition-all uppercase italic">Vymazať podpis</button>
-                            <div className="border-t border-slate-300 w-full pt-2 font-normal text-[9px] uppercase tracking-widest text-slate-400">Podpis zákazníka</div>
+                            <button type="button" onClick={() => ctxRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)} className="no-print absolute -top-8 left-0 text-[9px] text-red-300 uppercase italic">Vymazať</button>
+                            <div className="border-t border-slate-200 w-full pt-2 text-[9px] uppercase tracking-widest text-slate-300">Podpis zákazníka</div>
                         </div>
                         <div className="text-center flex flex-col items-center justify-end">
                             <div className="h-[90px] flex items-center justify-center relative scale-110 mb-2">
-                                <img src="Razitko a podpis.jpg" alt="Spektra Install Pečiatka" className="max-h-full mix-blend-multiply opacity-80" onError={(e) => e.target.style.display='none'} />
+                                <img src="Razitko a podpis.jpg" alt="Pečiatka" className="max-h-full mix-blend-multiply opacity-80" onError={(e) => e.target.style.display='none'} />
                             </div>
-                            <div className="border-t border-slate-300 w-full pt-2 font-normal text-[9px] uppercase tracking-widest text-slate-400">Technik (Spektra install)</div>
+                            <div className="border-t border-slate-200 w-full pt-2 text-[9px] uppercase tracking-widest text-slate-300">Technik (Spektra)</div>
                         </div>
                     </div>
 
-                    {/* FOTO SEKCIA */}
+                    {/* FOTO - NO PRINT */}
                     <div className="mt-12 no-print border-t pt-8">
-                        <h4 className="font-normal uppercase text-xs border-l-4 border-red-600 pl-3 mb-6 tracking-widest italic text-slate-500">3. Fotodokumentácia inštalácie</h4>
-                        <div className="mb-8 p-10 border-2 border-dashed border-slate-200 bg-slate-50 text-center rounded-3xl hover:bg-slate-100 transition-all cursor-pointer group" onClick={() => document.getElementById('photoInput').click()}>
-                            <input type="file" id="photoInput" accept="image/*" multiple className="hidden" onChange={handlePhotoUpload} />
-                            <div className="flex flex-col items-center gap-4">
-                                <div className="text-6xl group-hover:scale-110 transition-transform">📸</div>
-                                <span className="font-normal text-xs uppercase tracking-[0.2em] text-slate-400 tracking-tighter">Nahrať fotografie z inštalácie</span>
-                                <span className="text-[10px] text-slate-400 font-normal italic">Fotky sa automaticky usporiadajú na ďalšiu stranu</span>
-                            </div>
+                        <div className="mb-8 p-10 border-2 border-dashed border-slate-100 bg-slate-50 text-center rounded-3xl cursor-pointer hover:bg-slate-100 transition-all" onClick={() => document.getElementById('photoInput').click()}>
+                            <input type="file" id="photoInput" accept="image/*" multiple className="hidden" onChange={(e) => {
+                                const files = Array.from(e.target.files);
+                                files.forEach(file => {
+                                    const reader = new FileReader();
+                                    reader.onload = (ev) => { setPhotos(prev => [...prev, ev.target.result]); };
+                                    reader.readAsDataURL(file);
+                                });
+                            }} />
+                            <span className="text-[10px] uppercase tracking-[0.2em] text-slate-400 italic">Kliknite pre nahratie fotografií inštalácie</span>
                         </div>
                         <div className="grid grid-cols-2 gap-4">
                             {photos.map((p, i) => (
-                                <div key={i} className="relative aspect-video rounded-2xl overflow-hidden shadow-lg border-2 border-white">
-                                    <img src={p} alt="Inštalácia" className="w-full h-full object-cover" />
+                                <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-slate-100">
+                                    <img src={p} alt="Foto" className="w-full h-full object-cover" />
                                     <button 
                                         type="button"
                                         onClick={(e) => { e.stopPropagation(); setPhotos(prev => prev.filter((_, idx) => idx !== i)); }}
-                                        className="absolute top-2 right-2 bg-red-600 text-white w-8 h-8 rounded-full font-normal shadow-xl hover:bg-red-700 transition-colors flex items-center justify-center"
-                                    >
-                                        &times;
-                                    </button>
+                                        className="absolute top-2 right-2 bg-red-500 text-white w-6 h-6 rounded-full text-xs"
+                                    >&times;</button>
                                 </div>
                             ))}
                         </div>
                     </div>
 
                     {/* AKCIE */}
-                    <div className="mt-20 no-print flex flex-wrap justify-center gap-6 border-t border-slate-100 pt-10 pb-16">
-                        <button type="button" onClick={saveToCloud} className="bg-slate-900 text-white px-12 py-5 rounded-full text-xs font-normal uppercase tracking-[0.2em] shadow-xl hover:bg-black hover:-translate-y-1 transition-all active:translate-y-0 italic">
-                            Uložiť Protokol
-                        </button>
-                        <button type="button" onClick={() => { setIsListModalOpen(true); fetchProtocolsList(); }} className="bg-white text-slate-900 border border-slate-900 px-12 py-5 rounded-full text-xs font-normal uppercase tracking-[0.2em] hover:bg-slate-50 hover:-translate-y-1 transition-all active:translate-y-0 italic">
-                            Zoznam z cloudu
-                        </button>
-                        <button type="button" onClick={() => window.print()} className="bg-red-600 text-white px-12 py-5 rounded-full text-xs font-normal uppercase tracking-[0.2em] shadow-xl hover:bg-red-700 hover:-translate-y-1 transition-all active:translate-y-0 italic">
-                            Vytlačiť PDF
-                        </button>
+                    <div className="mt-16 no-print flex flex-wrap justify-center gap-4 border-t border-slate-50 pt-10 pb-16">
+                        <button type="button" onClick={saveToCloud} className="bg-slate-900 text-white px-10 py-4 rounded-full text-xs uppercase tracking-widest shadow-xl hover:bg-black transition-all italic">Uložiť Protokol</button>
+                        <button type="button" onClick={() => { setIsListModalOpen(true); fetchProtocolsList(); }} className="bg-white text-slate-600 border border-slate-200 px-10 py-4 rounded-full text-xs uppercase tracking-widest hover:bg-slate-50 transition-all italic">Zoznam / Archív</button>
+                        <button type="button" onClick={() => window.print()} className="bg-red-600 text-white px-10 py-4 rounded-full text-xs uppercase tracking-widest shadow-xl hover:bg-red-700 transition-all italic">Tlačiť PDF</button>
                     </div>
-                </div>
+                </form>
             </div>
             
             <style>{`
-                .pulse { 
-                    width: 8px; 
-                    height: 8px; 
-                    border-radius: 50%; 
-                    background-color: #22c55e; 
-                    animation: pulse-animation 2s infinite; 
-                }
-                @keyframes pulse-animation { 
-                    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); } 
-                    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(34, 197, 94, 0); } 
-                    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); } 
-                }
                 @media print {
                     .no-print { display: none !important; }
                     body { background: white !important; padding: 0 !important; }
-                    .page-container { 
-                        box-shadow: none !important; 
-                        border: none !important; 
-                        max-width: 100% !important; 
-                        width: 100% !important; 
-                        margin: 0 !important; 
-                        padding: 0 !important;
-                    }
-                    input[type="date"]::-webkit-inner-spin-button,
-                    input[type="date"]::-webkit-calendar-picker-indicator {
-                        display: none;
-                        -webkit-appearance: none;
-                    }
+                    .page-container { box-shadow: none !important; border: none !important; width: 100% !important; margin: 0 !important; padding: 0 !important; }
+                    input[type="date"]::-webkit-inner-spin-button, input[type="date"]::-webkit-calendar-picker-indicator { display: none; }
                 }
             `}</style>
         </div>
