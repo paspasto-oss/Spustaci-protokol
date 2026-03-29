@@ -13,10 +13,10 @@ const appId = typeof __app_id !== 'undefined' ? __app_id : 'spustaci-protokol';
 export default function App() {
     const [user, setUser] = useState(null);
     const [protocolId, setProtocolId] = useState('SP-2026/001');
-    const [deviceType, setDeviceType] = useState('tc');
+    const [deviceType, setDeviceType] = useState('gree');
     const [photos, setPhotos] = useState([]);
     
-    // Kompletný stav formulára so všetkými záznamami
+    // Kompletný stav formulára so všetkými záznamami (Panasonic + GREE)
     const [formData, setFormData] = useState({
         inst_company: 'Spektra install s.r.o.',
         inst_elec: '§22 č.o. 18122868',
@@ -30,8 +30,23 @@ export default function App() {
         // Údaje o zariadení
         model_ext: '', sn_ext: '',
         model_int: '', sn_int: '',
+        refrigerant_type: 'R32',
         
-        // Kontroly
+        // GREE Špecifické - Chladivový okruh
+        pipe_length: '',
+        elevation: '',
+        leak_test_pressure: '42 bar',
+        vacuum_time: '30 min',
+        vacuum_final: '270 Pa',
+        extra_charge: '0 g',
+        
+        // Prevádzkové hodnoty (GREE)
+        mode_test: 'cooling', // cooling / heating
+        temp_air_in: '',
+        temp_air_out: '',
+        working_current: '',
+        
+        // Kontroly (Panasonic / Všeobecné)
         tc_placed: true,
         tc_ground: true,
         tc_mag_filter: true,
@@ -44,6 +59,12 @@ export default function App() {
         v12o: '', v23o: '', v31o: '', v1no: '', v2no: '', v3no: '',
         // Napätia - ON
         v12: '', v23: '', v31: '', v1n: '', v2n: '', v3n: '',
+        
+        // Poučenie
+        user_trained: true,
+        remote_handed: true,
+        filter_explained: true,
+        manual_handed: true,
         
         notes: ''
     });
@@ -139,10 +160,8 @@ export default function App() {
     };
 
     const applyProtocol = (data, isNewCopy) => {
-        setDeviceType(data.type || 'tc');
-        
+        setDeviceType(data.type || 'gree');
         if (isNewCopy) {
-            // Šablóna: prenesie technické dáta, ale vyčistí zákazníka a ID
             setFormData({
                 ...data.content,
                 customer: '', address: '', phone: '', email: '', ext_temp: '', notes: ''
@@ -150,7 +169,7 @@ export default function App() {
             setProtocolId('');
             setPhotos([]);
             if (ctxRef.current) ctxRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height);
-            showToast("✨ Načítané ako šablóna pre nový protokol.");
+            showToast("✨ Načítané ako šablóna.");
         } else {
             setFormData(data.content || {});
             setProtocolId(data.displayId || data.id);
@@ -189,25 +208,23 @@ export default function App() {
 
     return (
         <div className="min-h-screen bg-white p-0 md:p-8 text-slate-700 font-normal">
-            {/* Notifikácia */}
             {toast.show && (
                 <div className="fixed bottom-8 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-6 py-4 rounded-xl shadow-2xl z-[300] animate-bounce text-center text-xs font-normal">
                     {toast.msg}
                 </div>
             )}
 
-            {/* Archív / Zoznam */}
+            {/* Modálne okno Archív */}
             {isListModalOpen && (
-                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4 font-normal">
+                <div className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] flex items-center justify-center p-4">
                     <div className="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[80vh] font-normal">
-                        <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-2xl text-slate-400 uppercase text-[9px] tracking-widest font-normal">
-                            <span className="font-normal">Databáza protokolov</span>
+                        <div className="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-2xl font-normal">
+                            <span className="uppercase text-[9px] tracking-widest text-slate-400 font-normal">Databáza protokolov</span>
                             <button onClick={() => setIsListModalOpen(false)} className="text-slate-400 hover:text-red-600 text-2xl leading-none font-normal">&times;</button>
                         </div>
                         <div className="p-4 border-b font-normal">
                             <input 
-                                type="text" 
-                                placeholder="🔍 Hľadať zákazníka alebo číslo..." 
+                                type="text" placeholder="🔍 Hľadať zákazníka..." 
                                 className="w-full px-4 py-3 bg-white rounded-xl outline-none border border-slate-200 text-sm font-normal"
                                 value={searchTerm}
                                 onChange={(e) => setSearchTerm(e.target.value)}
@@ -215,22 +232,19 @@ export default function App() {
                         </div>
                         <div className="overflow-y-auto flex-grow p-4 font-normal">
                             {isLoadingList ? (
-                                <div className="text-center py-10 text-slate-300 uppercase text-[9px] tracking-widest font-normal">Načítavam cloud...</div>
+                                <div className="text-center py-10 text-slate-300 uppercase text-[9px] font-normal">Načítavam...</div>
                             ) : (
-                                <div className="grid gap-3 font-normal">
-                                    {savedProtocols.filter(p => 
-                                        (p.displayId || p.id).toLowerCase().includes(searchTerm.toLowerCase()) ||
-                                        (p.content?.customer || '').toLowerCase().includes(searchTerm.toLowerCase())
-                                    ).map((p) => (
+                                <div className="grid gap-3">
+                                    {savedProtocols.filter(p => (p.displayId || p.id).toLowerCase().includes(searchTerm.toLowerCase()) || (p.content?.customer || '').toLowerCase().includes(searchTerm.toLowerCase())).map((p) => (
                                         <div key={p.id} className="p-4 border border-slate-100 rounded-xl hover:bg-slate-50 flex justify-between items-center group transition-colors font-normal">
                                             <div className="font-normal">
                                                 <div className="text-red-600 text-sm font-normal">{p.displayId || p.id}</div>
-                                                <div className="text-slate-800 text-xs font-normal">{p.content?.customer || 'Nezadané meno'}</div>
+                                                <div className="text-slate-800 text-xs font-normal">{p.content?.customer || 'Nezadané'}</div>
                                                 <div className="text-[9px] text-slate-400 uppercase tracking-tight font-normal">{new Date(p.ts).toLocaleDateString()}</div>
                                             </div>
                                             <div className="flex gap-2 font-normal">
-                                                <button onClick={() => applyProtocol(p, false)} className="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-[9px] uppercase hover:bg-slate-200 font-normal">Otvoriť</button>
-                                                <button onClick={() => applyProtocol(p, true)} className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-[9px] uppercase hover:bg-red-100 font-normal">Šablóna</button>
+                                                <button onClick={() => applyProtocol(p, false)} className="bg-slate-100 text-slate-600 px-3 py-1.5 rounded-lg text-[9px] uppercase font-normal">Otvoriť</button>
+                                                <button onClick={() => applyProtocol(p, true)} className="bg-red-50 text-red-600 px-3 py-1.5 rounded-lg text-[9px] uppercase font-normal">Šablóna</button>
                                             </div>
                                         </div>
                                     ))}
@@ -246,12 +260,12 @@ export default function App() {
                 {/* HLAVIČKA */}
                 <div className="flex flex-col md:flex-row justify-between items-end border-b-2 border-red-600 pb-6 mb-10 gap-4 print:flex-row font-normal">
                     <div className="font-normal">
-                        <h1 className="text-4xl tracking-tighter uppercase leading-none text-slate-800 font-normal" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                        <h1 className="text-4xl tracking-tighter uppercase leading-none text-slate-800 font-normal">
                             SPEKTRA <span className="text-red-600 font-normal">INSTALL</span>
                         </h1>
                         <div className="mt-2 text-[11px] text-slate-500 font-normal uppercase tracking-[0.2em] leading-relaxed">
-                            <p className="font-normal">Rajecká Lesná 98, 013 15</p>
-                            <p className="text-[10px] text-slate-400 font-normal">IČO: 53690036 | IČ DPH: SK2121459450</p>
+                            <p>Rajecká Lesná 98, 013 15</p>
+                            <p className="text-[10px] text-slate-400">IČO: 53690036 | IČ DPH: SK2121459450</p>
                         </div>
                     </div>
                     
@@ -261,9 +275,9 @@ export default function App() {
                             onChange={(e) => setDeviceType(e.target.value)}
                             className="border border-slate-200 rounded-lg px-4 py-2 text-xs text-red-600 bg-white outline-none mb-1 appearance-none cursor-pointer font-normal"
                         >
-                            <option value="tc" className="font-normal">Tepelné čerpadlo (TČ)</option>
-                            <option value="plyn" className="font-normal">Plynový kotol</option>
-                            <option value="elektro" className="font-normal">Elektrický kotol</option>
+                            <option value="gree">GREE Klimatizácia</option>
+                            <option value="tc">Tepelné čerpadlo (Panasonic)</option>
+                            <option value="plyn">Plynový kotol</option>
                         </select>
                         <div className="text-[8px] text-slate-300 uppercase tracking-widest font-normal">
                             {user ? "🟢 Cloud pripojený" : "⚪ Odpojené"}
@@ -271,164 +285,105 @@ export default function App() {
                     </div>
 
                     <div className="flex flex-col items-end font-normal">
-                        <h2 className="text-[14px] uppercase text-slate-300 mb-1 tracking-[0.2em] italic font-normal">Spúšťací protokol</h2>
+                        <h2 className="text-[14px] uppercase text-slate-300 mb-1 tracking-[0.2em] italic font-normal">Odovzdávací protokol</h2>
                         <div className="border border-slate-900 px-4 py-2 flex items-center bg-white font-normal text-[14px]">
-                            <span className="text-slate-300 mr-2 uppercase text-[10px] font-normal">Číslo:</span>
+                            <span className="text-slate-300 mr-2 uppercase text-[10px]">Číslo:</span>
                             <input 
-                                type="text" 
-                                value={protocolId}
-                                onChange={(e) => setProtocolId(e.target.value)}
+                                type="text" value={protocolId} onChange={(e) => setProtocolId(e.target.value)}
                                 className="w-28 text-red-600 text-right outline-none bg-transparent font-normal"
                             />
-                            <button 
-                                type="button"
-                                onClick={() => { setIsListModalOpen(true); fetchProtocolsList(); }} 
-                                className="no-print ml-4 text-slate-200 hover:text-red-600 transition-colors font-normal"
-                            >
+                            <button type="button" onClick={() => { setIsListModalOpen(true); fetchProtocolsList(); }} className="no-print ml-4 text-slate-200 hover:text-red-600 transition-colors font-normal">
                                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth="1.5"><path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                             </button>
                         </div>
                     </div>
                 </div>
 
-                <form className="flex-grow flex flex-col gap-10 font-normal">
+                <form className="flex-grow flex flex-col gap-8 font-normal" onSubmit={(e) => e.preventDefault()}>
                     {/* 01. VŠEOBECNÉ INFO */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-normal">
                         <div className="border border-slate-100 p-6 rounded-2xl bg-white font-normal">
                             <h3 className="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic font-normal">01. Zhotoviteľ a inštalácia</h3>
                             <div className="grid gap-4 text-[12px] font-normal">
-                                <div className="flex justify-between border-b border-slate-50 pb-1 font-normal">
-                                    <span className="text-slate-400 uppercase text-[10px] font-normal">Spoločnosť</span>
-                                    <input type="text" id="inst_company" value={formData.inst_company} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent font-normal" />
-                                </div>
-                                <div className="flex justify-between border-b border-slate-50 pb-1 font-normal">
-                                    <span className="text-slate-400 uppercase text-[10px] font-normal">Technik</span>
-                                    <input type="text" id="inst_elec" value={formData.inst_elec} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent font-normal" />
-                                </div>
-                                <div className="flex justify-between border-b border-slate-50 pb-1 font-normal">
-                                    <span className="text-slate-400 uppercase text-[10px] font-normal">Dátum</span>
-                                    <input type="date" id="date_inst" value={formData.date_inst} onChange={handleInputChange} className="text-right outline-none bg-transparent font-normal" />
-                                </div>
-                                <div className="flex justify-between font-normal">
-                                    <span className="text-slate-400 uppercase text-[10px] font-normal">Vonk. teplota (°C)</span>
-                                    <input type="text" id="ext_temp" value={formData.ext_temp} onChange={handleInputChange} className="text-right outline-none w-1/4 bg-transparent font-normal" placeholder="5" />
-                                </div>
+                                <div className="flex justify-between border-b border-slate-50 pb-1"><span className="text-slate-400 uppercase text-[10px]">Firma</span><input type="text" id="inst_company" value={formData.inst_company} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent" /></div>
+                                <div className="flex justify-between border-b border-slate-50 pb-1"><span className="text-slate-400 uppercase text-[10px]">Technik</span><input type="text" id="inst_elec" value={formData.inst_elec} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent" /></div>
+                                <div className="flex justify-between border-b border-slate-50 pb-1"><span className="text-slate-400 uppercase text-[10px]">Dátum</span><input type="date" id="date_inst" value={formData.date_inst} onChange={handleInputChange} className="text-right outline-none" /></div>
+                                <div className="flex justify-between"><span className="text-slate-400 uppercase text-[10px]">Vonk. teplota</span><input type="text" id="ext_temp" value={formData.ext_temp} onChange={handleInputChange} className="text-right outline-none w-1/4" placeholder="°C" /></div>
                             </div>
                         </div>
                         <div className="border border-slate-100 p-6 rounded-2xl bg-white font-normal">
                             <h3 className="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic font-normal">02. Zákazník / Užívateľ</h3>
                             <div className="grid gap-4 text-[12px] font-normal">
                                 {['customer', 'address', 'phone', 'email'].map(f => (
-                                    <div key={f} className="flex justify-between border-b border-slate-50 pb-1 font-normal">
-                                        <span className="text-slate-400 uppercase text-[10px] font-normal">{f === 'customer' ? 'Meno' : f === 'address' ? 'Adresa' : f === 'phone' ? 'Mobil' : 'Email'}</span>
-                                        <input type="text" id={f} value={formData[f] || ''} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent placeholder-slate-200 font-normal" placeholder="..." />
-                                    </div>
+                                    <div key={f} className="flex justify-between border-b border-slate-50 pb-1"><span className="text-slate-400 uppercase text-[10px]">{f === 'customer' ? 'Meno' : f === 'address' ? 'Adresa' : f === 'phone' ? 'Mobil' : 'Email'}</span><input type="text" id={f} value={formData[f] || ''} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent placeholder-slate-200" placeholder="..." /></div>
                                 ))}
                             </div>
                         </div>
                     </div>
 
-                    {/* 02. ÚDAJE O ZARIADENÍ */}
+                    {/* 03. ÚDAJE O ZARIADENÍ */}
                     <div className="border border-slate-100 p-6 rounded-2xl font-normal">
                         <h3 className="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic font-normal">03. Údaje o zariadení</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-8 font-normal">
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 font-normal">
-                                <span className="text-[9px] uppercase text-red-400 block mb-3 italic tracking-widest font-normal">Vonkajšia jednotka</span>
-                                <div className="grid gap-3 text-[11px] font-normal">
-                                    <div className="flex justify-between border-b border-slate-200 pb-1 font-normal">
-                                        <span className="text-slate-400 uppercase font-normal">Model</span>
-                                        <input type="text" id="model_ext" value={formData.model_ext} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent font-normal" />
-                                    </div>
-                                    <div className="flex justify-between font-normal">
-                                        <span className="text-slate-400 uppercase font-normal">Sériové číslo</span>
-                                        <input type="text" id="sn_ext" value={formData.sn_ext} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent font-normal" />
-                                    </div>
-                                </div>
-                            </div>
-                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100 font-normal">
-                                <span className="text-[9px] uppercase text-red-400 block mb-3 italic tracking-widest font-normal">Vnútorná jednotka</span>
-                                <div className="grid gap-3 text-[11px] font-normal">
-                                    <div className="flex justify-between border-b border-slate-200 pb-1 font-normal">
-                                        <span className="text-slate-400 uppercase font-normal">Model</span>
-                                        <input type="text" id="model_int" value={formData.model_int} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent font-normal" />
-                                    </div>
-                                    <div className="flex justify-between font-normal">
-                                        <span className="text-slate-400 uppercase font-normal">Sériové číslo</span>
-                                        <input type="text" id="sn_int" value={formData.sn_int} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent font-normal" />
-                                    </div>
-                                </div>
-                            </div>
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100"><span className="text-[9px] uppercase text-red-400 block mb-3 italic tracking-widest">Vonkajšia jednotka</span><div className="grid gap-3 text-[11px]"><div className="flex justify-between border-b border-slate-200 pb-1"><span className="text-slate-400 uppercase font-normal">Model</span><input type="text" id="model_ext" value={formData.model_ext} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent font-normal" /></div><div className="flex justify-between"><span className="text-slate-400 uppercase font-normal">Sériové číslo</span><input type="text" id="sn_ext" value={formData.sn_ext} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent font-normal" /></div></div></div>
+                            <div className="bg-slate-50 p-4 rounded-xl border border-slate-100"><span className="text-[9px] uppercase text-red-400 block mb-3 italic tracking-widest">Vnútorná jednotka</span><div className="grid gap-3 text-[11px]"><div className="flex justify-between border-b border-slate-200 pb-1"><span className="text-slate-400 uppercase font-normal">Model</span><input type="text" id="model_int" value={formData.model_int} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent font-normal" /></div><div className="flex justify-between"><span className="text-slate-400 uppercase font-normal">Sériové číslo</span><input type="text" id="sn_int" value={formData.sn_int} onChange={handleInputChange} className="text-right outline-none w-1/2 bg-transparent font-normal" /></div></div></div>
                         </div>
                     </div>
 
-                    {/* 03. INŠTALÁCIA A KONTROLA */}
-                    <div className="border border-slate-100 p-6 rounded-2xl font-normal">
-                        <h3 className="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic font-normal">04. Inštalácia a kontrola</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 text-[11px] font-normal">
-                            <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal">
-                                <span className="text-slate-500 uppercase text-[10px] font-normal">Umiestnené podľa návodu</span>
-                                <input type="checkbox" id="tc_placed" checked={formData.tc_placed} onChange={handleInputChange} className="w-4 h-4 accent-red-600 font-normal" />
-                            </div>
-                            <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal">
-                                <span className="text-slate-500 uppercase text-[10px] font-normal">Riadne uzemnené</span>
-                                <input type="checkbox" id="tc_ground" checked={formData.tc_ground} onChange={handleInputChange} className="w-4 h-4 accent-red-600 font-normal" />
-                            </div>
-                            <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal">
-                                <span className="text-slate-500 uppercase text-[10px] font-normal">Magnetický filter v systéme</span>
-                                <input type="checkbox" id="tc_mag_filter" checked={formData.tc_mag_filter} onChange={handleInputChange} className="w-4 h-4 accent-red-600 font-normal" />
-                            </div>
-                            <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal">
-                                <span className="text-slate-500 uppercase text-[10px] font-normal">pH vody (7.0 - 8.5)</span>
-                                <input type="text" id="w_ph" value={formData.w_ph} onChange={handleInputChange} className="w-16 text-right outline-none bg-transparent font-normal" />
-                            </div>
-                            <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal">
-                                <span className="text-red-500 uppercase text-[10px] font-normal">Vákuovanie (bar)</span>
-                                <input type="text" id="tc_vacuum" value={formData.tc_vacuum} onChange={handleInputChange} className="w-20 text-right outline-none text-red-600 bg-transparent font-normal" />
-                            </div>
-                            <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal">
-                                <span className="text-red-500 uppercase text-[10px] font-normal">Doplnené chladivo (kg)</span>
-                                <input type="text" id="tc_refrig_add" value={formData.tc_refrig_add} onChange={handleInputChange} className="w-16 text-right outline-none bg-transparent font-normal" />
+                    {/* GREE ŠPECIFICKÉ - CHLADIVOVÝ OKRUH */}
+                    {deviceType === 'gree' && (
+                        <div className="border border-slate-100 p-6 rounded-2xl font-normal">
+                            <h3 className="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic font-normal">04. Chladivový okruh (GREE)</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-[11px] font-normal">
+                                <div className="flex flex-col gap-1 border-b pb-2"><span className="text-slate-400 uppercase text-[9px]">Dĺžka potrubia (m)</span><input type="text" id="pipe_length" value={formData.pipe_length} onChange={handleInputChange} className="outline-none" placeholder="napr. 5m" /></div>
+                                <div className="flex flex-col gap-1 border-b pb-2"><span className="text-slate-400 uppercase text-[9px]">Prevýšenie (m)</span><input type="text" id="elevation" value={formData.elevation} onChange={handleInputChange} className="outline-none" placeholder="napr. 2m" /></div>
+                                <div className="flex flex-col gap-1 border-b pb-2"><span className="text-slate-400 uppercase text-[9px]">Typ chladiva</span><input type="text" id="refrigerant_type" value={formData.refrigerant_type} onChange={handleInputChange} className="outline-none" placeholder="R32" /></div>
+                                <div className="flex flex-col gap-1 border-b pb-2"><span className="text-slate-400 uppercase text-[9px]">Tlaková skúška</span><input type="text" id="leak_test_pressure" value={formData.leak_test_pressure} onChange={handleInputChange} className="outline-none text-red-600" /></div>
+                                <div className="flex flex-col gap-1 border-b pb-2"><span className="text-slate-400 uppercase text-[9px]">Doba vákuovania</span><input type="text" id="vacuum_time" value={formData.vacuum_time} onChange={handleInputChange} className="outline-none" /></div>
+                                <div className="flex flex-col gap-1 border-b pb-2"><span className="text-slate-400 uppercase text-[9px]">Doplnené chladivo</span><input type="text" id="extra_charge" value={formData.extra_charge} onChange={handleInputChange} className="outline-none" /></div>
                             </div>
                         </div>
-                    </div>
+                    )}
 
-                    {/* 04. ELEKTRICKÉ NAPÄTIA */}
+                    {/* PANASONIC ŠPECIFICKÉ - KONTROLA */}
+                    {deviceType === 'tc' && (
+                        <div className="border border-slate-100 p-6 rounded-2xl font-normal">
+                            <h3 className="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic font-normal">04. Inštalácia a kontrola (Panasonic)</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 text-[11px] font-normal">
+                                <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal"><span>Umiestnené podľa návodu</span><input type="checkbox" id="tc_placed" checked={formData.tc_placed} onChange={handleInputChange} className="w-4 h-4 accent-red-600" /></div>
+                                <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal"><span>Riadne uzemnené</span><input type="checkbox" id="tc_ground" checked={formData.tc_ground} onChange={handleInputChange} className="w-4 h-4 accent-red-600" /></div>
+                                <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal"><span className="text-red-500">Vákuovanie (bar)</span><input type="text" id="tc_vacuum" value={formData.tc_vacuum} onChange={handleInputChange} className="w-20 text-right outline-none text-red-600 bg-transparent" /></div>
+                                <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal"><span>pH vody (7.0 - 8.5)</span><input type="text" id="w_ph" value={formData.w_ph} onChange={handleInputChange} className="w-16 text-right outline-none bg-transparent" /></div>
+                            </div>
+                        </div>
+                    )}
+
+                    {/* SPOLOČNÉ - ELEKTRICKÉ NAPÄTIA */}
                     <div className="border border-slate-100 p-6 rounded-2xl font-normal">
-                        <h3 className="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic font-normal">05. Elektrické napätia (Napájací zdroj)</h3>
+                        <h3 className="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic font-normal">05. Elektrické napätia</h3>
                         <div className="overflow-x-auto font-normal">
                             <table className="w-full text-center text-[10px] border-collapse font-normal">
-                                <thead className="font-normal">
-                                    <tr className="bg-slate-50 font-normal">
-                                        <th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest font-normal">STAV</th>
-                                        <th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest font-normal">L1-L2 (V)</th>
-                                        <th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest font-normal">L2-L3 (V)</th>
-                                        <th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest font-normal">L3-L1 (V)</th>
-                                        <th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest font-normal">L1-N (V)</th>
-                                        <th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest font-normal">L2-N (V)</th>
-                                        <th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest font-normal">L3-N (V)</th>
-                                    </tr>
-                                </thead>
-                                <tbody className="font-normal">
-                                    <tr className="font-normal">
-                                        <td className="p-2 border border-slate-100 bg-slate-50 text-slate-400 uppercase tracking-widest font-normal">OFF</td>
-                                        {['v12o', 'v23o', 'v31o', 'v1no', 'v2no', 'v3no'].map(f => (
-                                            <td key={f} className="p-1 border border-slate-100 font-normal"><input type="text" id={f} value={formData[f]} onChange={handleInputChange} className="w-full text-center outline-none bg-transparent font-normal" /></td>
-                                        ))}
-                                    </tr>
-                                    <tr className="font-normal">
-                                        <td className="p-2 border border-slate-100 bg-rose-50 text-red-400 uppercase tracking-widest font-normal">ON</td>
-                                        {['v12', 'v23', 'v31', 'v1n', 'v2n', 'v3n'].map(f => (
-                                            <td key={f} className="p-1 border border-slate-100 font-normal"><input type="text" id={f} value={formData[f]} onChange={handleInputChange} className="w-full text-center outline-none text-red-600 bg-transparent font-normal" /></td>
-                                        ))}
-                                    </tr>
+                                <thead><tr className="bg-slate-50 font-normal"><th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest">STAV</th><th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest">L1-L2 (V)</th><th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest">L2-L3 (V)</th><th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest">L3-L1 (V)</th><th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest">L1-N (V)</th><th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest">L2-N (V)</th><th className="p-2 border border-slate-100 font-normal text-slate-400 uppercase text-[8px] tracking-widest">L3-N (V)</th></tr></thead>
+                                <tbody>
+                                    <tr className="font-normal"><td className="p-2 border border-slate-100 bg-slate-50 text-slate-400 uppercase tracking-widest font-normal">OFF</td>{['v12o', 'v23o', 'v31o', 'v1no', 'v2no', 'v3no'].map(f => (<td key={f} className="p-1 border border-slate-100"><input type="text" id={f} value={formData[f] || ''} onChange={handleInputChange} className="w-full text-center outline-none bg-transparent font-normal" /></td>))}</tr>
+                                    <tr className="font-normal"><td className="p-2 border border-slate-100 bg-rose-50 text-red-400 uppercase tracking-widest font-normal">ON</td>{['v12', 'v23', 'v31', 'v1n', 'v2n', 'v3n'].map(f => (<td key={f} className="p-1 border border-slate-100"><input type="text" id={f} value={formData[f] || ''} onChange={handleInputChange} className="w-full text-center outline-none text-red-600 bg-transparent font-normal" /></td>))}</tr>
                                 </tbody>
                             </table>
                         </div>
-                        <div className="mt-4 flex justify-end items-center text-[11px] font-normal">
-                            <span className="text-slate-400 uppercase text-[10px] mr-4 italic font-normal">Prevádzkový prúd kompresora (A):</span>
-                            <input type="text" id="amp_on" value={formData.amp_on} onChange={handleInputChange} className="w-20 border-b border-slate-100 outline-none text-right text-red-600 bg-transparent font-normal" placeholder="5.4" />
-                        </div>
                     </div>
+
+                    {/* GREE - POUČENIE UŽÍVATEĽA */}
+                    {deviceType === 'gree' && (
+                        <div className="border border-slate-100 p-6 rounded-2xl font-normal">
+                            <h3 className="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic font-normal">06. Odovzdanie a poučenie</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-[11px] font-normal">
+                                <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal"><span>Užívateľ zaškolený do obsluhy</span><input type="checkbox" id="user_trained" checked={formData.user_trained} onChange={handleInputChange} className="w-4 h-4 accent-red-600 font-normal" /></div>
+                                <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal"><span>Odovzdaný diaľkový ovládač</span><input type="checkbox" id="remote_handed" checked={formData.remote_handed} onChange={handleInputChange} className="w-4 h-4 accent-red-600 font-normal" /></div>
+                                <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal"><span>Vysvetlené čistenie filtrov</span><input type="checkbox" id="filter_explained" checked={formData.filter_explained} onChange={handleInputChange} className="w-4 h-4 accent-red-600 font-normal" /></div>
+                                <div className="flex justify-between items-center border-b border-slate-50 pb-1 font-normal"><span>Odovzdaný návod na obsluhu</span><input type="checkbox" id="manual_handed" checked={formData.manual_handed} onChange={handleInputChange} className="w-4 h-4 accent-red-600 font-normal" /></div>
+                            </div>
+                        </div>
+                    )}
 
                     <div className="p-6 border-l-4 border-red-600 bg-slate-50 font-normal italic">
                         <span className="text-[9px] uppercase tracking-[0.2em] text-red-600 block mb-2 font-normal italic">Záver protokolu</span>
@@ -438,24 +393,17 @@ export default function App() {
                     </div>
 
                     <div className="border border-green-600 py-6 text-center bg-green-50 rounded-2xl font-normal shadow-sm">
-                        <h3 className="text-green-700 uppercase text-[13px] tracking-[0.4em] font-normal italic">Spôsobilé bezpečnej prevádzky</h3>
+                        <h3 className="text-green-700 uppercase text-[13px] tracking-[0.4em] font-normal italic uppercase">Spôsobilé bezpečnej prevádzky</h3>
                     </div>
 
                     {/* PODPISY */}
                     <div className="mt-auto grid grid-cols-1 md:grid-cols-3 gap-12 pt-12 pb-6 border-t border-slate-100 items-end font-normal">
                         <div className="text-center flex flex-col justify-end font-normal">
-                            <div className="text-lg mb-2 text-slate-700 italic font-normal">
-                                {formData.date_inst ? new Date(formData.date_inst).toLocaleDateString() : '—'}
-                            </div>
+                            <div className="text-lg mb-2 text-slate-700 italic font-normal">{formData.date_inst ? new Date(formData.date_inst).toLocaleDateString() : '—'}</div>
                             <div className="border-t border-slate-200 pt-2 text-[9px] uppercase tracking-widest text-slate-300 font-normal">Dátum</div>
                         </div>
                         <div className="relative text-center flex flex-col items-center justify-end font-normal">
-                            <canvas 
-                                ref={canvasRef}
-                                onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={() => isDrawing = false} onMouseLeave={() => isDrawing = false}
-                                onTouchStart={(e) => { startDrawing(e); e.preventDefault(); }} onTouchMove={(e) => { draw(e); e.preventDefault(); }}
-                                className="mb-2 w-full bg-slate-50 border border-slate-100 rounded-xl cursor-crosshair h-32 shadow-inner font-normal" 
-                            />
+                            <canvas ref={canvasRef} onMouseDown={startDrawing} onMouseMove={draw} onMouseUp={() => isDrawing = false} onMouseLeave={() => isDrawing = false} onTouchStart={(e) => { startDrawing(e); e.preventDefault(); }} onTouchMove={(e) => { draw(e); e.preventDefault(); }} className="mb-2 w-full bg-slate-50 border border-slate-100 rounded-xl cursor-crosshair h-32 shadow-inner font-normal" />
                             <button type="button" onClick={() => ctxRef.current.clearRect(0, 0, canvasRef.current.width, canvasRef.current.height)} className="no-print absolute -top-8 left-0 text-[9px] text-red-300 uppercase italic font-normal">Vymazať podpis</button>
                             <div className="border-t border-slate-200 w-full pt-2 text-[9px] uppercase tracking-widest text-slate-300 font-normal">Podpis zákazníka</div>
                         </div>
@@ -464,33 +412,6 @@ export default function App() {
                                 <img src="Razitko a podpis.jpg" alt="Pečiatka" className="max-h-full mix-blend-multiply opacity-80 font-normal" onError={(e) => e.target.style.display='none'} />
                             </div>
                             <div className="border-t border-slate-200 w-full pt-2 text-[9px] uppercase tracking-widest text-slate-300 font-normal">Technik (Spektra)</div>
-                        </div>
-                    </div>
-
-                    {/* FOTO - NO PRINT */}
-                    <div className="mt-12 no-print border-t pt-8 font-normal">
-                        <div className="mb-8 p-10 border-2 border-dashed border-slate-100 bg-slate-50 text-center rounded-3xl cursor-pointer hover:bg-slate-100 transition-all font-normal" onClick={() => document.getElementById('photoInput').click()}>
-                            <input type="file" id="photoInput" accept="image/*" multiple className="hidden font-normal" onChange={(e) => {
-                                const files = Array.from(e.target.files);
-                                files.forEach(file => {
-                                    const reader = new FileReader();
-                                    reader.onload = (ev) => { setPhotos(prev => [...prev, ev.target.result]); };
-                                    reader.readAsDataURL(file);
-                                });
-                            }} />
-                            <span className="text-[10px] uppercase tracking-[0.2em] text-slate-300 italic font-normal">Kliknite pre nahratie fotografií inštalácie</span>
-                        </div>
-                        <div className="grid grid-cols-2 gap-4 font-normal">
-                            {photos.map((p, i) => (
-                                <div key={i} className="relative aspect-video rounded-xl overflow-hidden border border-slate-100 shadow-sm font-normal">
-                                    <img src={p} alt="Foto" className="w-full h-full object-cover font-normal" />
-                                    <button 
-                                        type="button"
-                                        onClick={(e) => { e.stopPropagation(); setPhotos(prev => prev.filter((_, idx) => idx !== i)); }}
-                                        className="absolute top-2 right-2 bg-red-600 text-white w-6 h-6 rounded-full text-xs flex items-center justify-center font-normal"
-                                    >&times;</button>
-                                </div>
-                            ))}
                         </div>
                     </div>
 
