@@ -10,7 +10,14 @@
         body { font-family: 'Inter', sans-serif; font-weight: 400 !important; -webkit-tap-highlight-color: transparent; }
         * { font-weight: 400 !important; }
         canvas { touch-action: none; cursor: crosshair; }
-        .pdf-page { width: 100%; }
+        .pdf-page {
+                min-height: 277mm;
+                padding: 0;
+                margin: 0;
+                display:flex;
+                flex-direction:column;
+                justify-content:space-between;
+            }
         .page-break-before { page-break-before: always; break-before: page; }
         .photo-slot img { display: block; }
 
@@ -259,18 +266,19 @@
                     <h3 class="text-green-700 uppercase text-[12px] tracking-[0.4em] italic">Spôsobilé bezpečnej prevádzky</h3>
                 </div>
 
-                <div class="mt-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-12 pb-4 border-t border-slate-100 items-end">
+                <div class="mt-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-8 pb-0 border-t border-slate-100 items-end">
                     <div class="relative text-center flex flex-col items-center justify-end">
-                        <canvas id="sigCanvas" class="mb-2 w-full bg-slate-50 border border-slate-100 rounded-xl h-32 shadow-inner"></canvas>
+                        <canvas id="sigCanvas" class="mb-2 w-full bg-slate-50 border border-slate-100 rounded-xl h-28 shadow-inner"></canvas>
                         <button type="button" onclick="clearSig()" class="no-print absolute -top-8 left-0 text-[8px] text-red-300 uppercase italic bg-red-50 px-2 py-0.5 rounded-full border">Vymazať</button>
-                        <div class="border-t border-slate-200 w-full pt-1.5 text-[9px] uppercase tracking-widest text-slate-300">Podpis zákazníka / užívateľa</div>
+                        <div class="border-t border-slate-200 w-full pt-1 text-[9px] uppercase tracking-widest text-slate-300">Podpis zákazníka / užívateľa</div>
                     </div>
                     <div class="text-center flex flex-col items-center justify-end">
-                        <div class="h-[90px] flex items-center justify-center relative scale-110 mb-1">
+                        <div class="h-[80px] flex items-center justify-center relative scale-105 mb-1">
                             <img src="Razitko a podpis.jpg" alt="Razítko Spektra" class="max-h-full mix-blend-multiply opacity-80" onerror="this.style.display='none'">
                         </div>
-                        <div class="border-t border-slate-200 w-full pt-1.5 text-[9px] uppercase tracking-widest text-slate-300">Uvádzací technik (Spektra install)</div>
+                        <div class="border-t border-slate-200 w-full pt-1 text-[9px] uppercase tracking-widest text-slate-300">Uvádzací technik (Spektra install)</div>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -667,6 +675,4 @@
             console.assert(hasValidFirebaseConfig({ apiKey: 'abc', projectId: '' }) === false, 'Test failed: empty projectId should fail');
             console.assert(protocolDocId('SP-2026/001') === 'SP-2026-001', 'Test failed: protocol id slash replacement');
             console.assert(Array.isArray(safeJsonParse('[1,2,3]', [])), 'Test failed: safeJsonParse should parse arrays');
-            console.assert(safeJsonParse('{bad json}', 123) === 123, 'Test failed: safeJsonParse fallback');
-            console.assert(Array.isArray(collectPhotos()), 'Test failed: collectPhotos should return array');
-            console.assert(document.querySelectorAll('#photoGrid .photo-slot').length === 4,
+            console.assert(safeJsonParse('{bad json}', 123) === 123, 'Test failed: safeJ
