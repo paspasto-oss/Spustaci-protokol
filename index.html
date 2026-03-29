@@ -10,7 +10,6 @@
         
         body { font-family: 'Inter', sans-serif; background-color: #f1f5f9; color: #000; -webkit-tap-highlight-color: transparent; }
         
-        /* Input styling pre web aj tlač */
         input[type="text"], input[type="date"], input[type="email"], select, textarea { border: none; background: transparent; outline: none; width: 100%; font-family: inherit; }
         .checkbox-custom { width: 15px; height: 15px; accent-color: #000; border: 1px solid #000; vertical-align: middle; }
         
@@ -30,43 +29,34 @@
         .signature-line { border-top: 1px solid #000; width: 100%; text-align: center; font-size: 9px; font-weight: 700; padding-top: 3px; margin-top: auto;}
         .signature-pad { border: 1px dashed #cbd5e1; background: #fafafa; width: 100%; height: 65px; touch-action: none; }
 
-        /* Foto Grid - 1/8 strany v tlači */
         .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
         .photo-card { position: relative; border: 1px solid #cbd5e1; aspect-ratio: 4/3; background: #fff; overflow: hidden; border-radius: 4px; }
         .photo-card img { width: 100%; height: 100%; object-fit: cover; }
         .photo-delete { position: absolute; top: 5px; right: 5px; background: #dc2626; color: #fff; width: 22px; height: 22px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; cursor: pointer; border: none; font-size: 12px; }
 
-        /* --- ŠTÝLY PRE DOKONALÚ TLAČ --- */
         @media print {
             @page { size: A4 portrait; margin: 8mm; }
             body { background: white !important; padding: 0 !important; font-size: 8.5pt !important; line-height: 1.1 !important; }
             .no-print { display: none !important; }
             .page-container { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; margin: 0 !important; padding: 0 !important; }
-            
             .print-header { display: flex !important; flex-direction: row !important; align-items: flex-end !important; justify-content: space-between !important; margin-bottom: 8px !important; }
             .print-left { text-align: left !important; flex: 1; }
             .print-center { text-align: center !important; flex: 1; }
             .print-right { text-align: right !important; flex: 1; }
-            
             .print-grid-2 { display: grid !important; grid-template-columns: 1fr 1fr !important; gap: 8px !important; margin-bottom: 6px !important; }
             .form-box { padding: 6px 8px !important; border-color: #000 !important; }
-            .form-box h3 { font-size: 8.5pt !important; margin-bottom: 4px !important; border-bottom: 1px solid #000 !important; }
-            
             .data-table th, .data-table td { border-color: #000 !important; padding: 2px 4px !important; }
             .section-title { font-size: 9pt !important; margin: 8px 0 3px 0 !important; }
-            
-            /* Druhá strana pre fotky */
             .photo-section { page-break-before: always; margin-top: 10mm; }
             .photo-grid { grid-template-columns: 1fr 1fr !important; gap: 6px !important; }
             .photo-card { border: 1px solid #000 !important; }
-
             .device-section { display: none; }
             .device-section.active { display: block !important; }
             .break-inside-avoid { page-break-inside: avoid; }
         }
 
-        #toast { visibility: hidden; min-width: 250px; background: #1e293b; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 10000; left: 50%; bottom: 30px; transform: translateX(-50%); font-weight: bold; }
-        #toast.show { visibility: visible; animation: fadein 0.4s, fadeout 0.4s 2.5s; }
+        #toast { visibility: hidden; min-width: 250px; background: #1e293b; color: #fff; text-align: center; border-radius: 8px; padding: 16px; position: fixed; z-index: 10000; left: 50%; bottom: 30px; transform: translateX(-50%); font-weight: bold; box-shadow: 0 4px 12px rgba(0,0,0,0.2); }
+        #toast.show { visibility: visible; animation: fadein 0.4s; }
         @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
         .device-section { display: none; }
         .device-section.active { display: block; }
@@ -103,6 +93,9 @@
                 <div class="border-[2px] border-black px-2 py-1 flex items-center bg-white font-bold text-[12px]">
                     <span>Číslo: </span>
                     <input type="text" id="protocolId" class="w-24 ml-2 font-black text-red-600 text-right outline-none" value="SP-2026/001">
+                    <button type="button" onclick="loadFromCloud()" class="no-print ml-2 hover:scale-110 transition-transform text-slate-400 hover:text-red-600" title="Načítať z cloudu">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                    </button>
                 </div>
             </div>
         </div>
@@ -140,7 +133,7 @@
                     <tbody>
                         <tr><td>Vákuovanie chladiaceho okruhu</td><td>Pod 0 bar</td><td><input type="text" id="tc_vacuum" value="-1.0 bar" class="text-red-600"></td><td class="font-bold">Vyhovuje</td></tr>
                         <tr><td>pH vody vo vykurovaní</td><td>7.0 - 8.5</td><td><input type="text" id="w_ph" value="7.5"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Magnetický filter v systéme</td><td>Áno</td><td class="text-center"><input type="checkbox" checked class="checkbox-custom"></td><td class="font-bold">Vyhovuje</td></tr>
+                        <tr><td>Magnetický filter v systéme</td><td>Áno</td><td class="text-center"><input type="checkbox" id="tc_mag_filter" checked class="checkbox-custom"></td><td class="font-bold">Vyhovuje</td></tr>
                     </tbody>
                 </table>
             </div>
@@ -182,13 +175,11 @@
                 </table>
             </div>
 
-            <!-- OSTATNÉ ZISTENIA -->
             <div class="section-title">Ostatné zistenia / Poznámky</div>
             <div class="border border-cbd5e1 bg-white p-2 mb-3">
                 <textarea id="notes" rows="2" class="w-full resize-none outline-none font-medium text-[10px]" placeholder="Pridajte poznámky k inštalácii..."></textarea>
             </div>
 
-            <!-- ZÁVER A HODNOTENIE -->
             <div class="break-inside-avoid">
                 <div class="section-title">Celkové hodnotenie a záver</div>
                 <p class="text-[10px] text-justify mb-2 leading-snug">
@@ -199,7 +190,7 @@
                 </div>
             </div>
 
-            <!-- PODPISY (Na spodku hárku) -->
+            <!-- PODPISY -->
             <div class="mt-auto grid grid-cols-3 gap-8 pt-4 pb-2 break-inside-avoid">
                 <div class="text-center flex flex-col justify-end">
                     <div id="sig_date_display" class="font-bold text-xs mb-1">17.03.2026</div>
@@ -223,7 +214,7 @@
                 <div class="section-title">3. Fotodokumentácia inštalácie</div>
                 <div class="no-print mb-4 p-4 border-2 border-dashed border-red-100 bg-red-50 text-center rounded">
                     <label class="cursor-pointer bg-slate-800 text-white px-6 py-2 rounded-full text-[10px] font-bold uppercase shadow-sm">
-                        📸 Pridať fotografie (1/8 strany)
+                        📸 Pridať fotografie
                         <input type="file" id="photoInput" accept="image/*" multiple class="hidden" onchange="handlePhotos(event)">
                     </label>
                 </div>
@@ -232,23 +223,26 @@
 
             <!-- AKCIE -->
             <div class="mt-12 no-print flex flex-wrap justify-center gap-4 border-t pt-6 pb-10">
-                <button type="button" id="btnSave" class="bg-black text-white px-6 py-3 rounded text-xs font-bold uppercase tracking-widest shadow-md">Uložiť do Cloudu</button>
-                <button type="button" id="btnPohoda" class="bg-blue-600 text-white px-6 py-3 rounded text-xs font-bold uppercase tracking-widest shadow-md">📊 Export pre POHODU</button>
-                <button type="button" onclick="window.print()" class="bg-red-600 text-white px-6 py-3 rounded text-xs font-bold uppercase tracking-widest shadow-md">🖨️ Tlačiť PDF</button>
+                <button type="button" onclick="saveToCloud()" class="bg-black text-white px-6 py-3 rounded text-xs font-bold uppercase tracking-widest shadow-md hover:bg-zinc-800 transition-colors">Uložiť do Cloudu</button>
+                <button type="button" onclick="loadFromCloud()" class="bg-slate-200 text-black px-6 py-3 rounded text-xs font-bold uppercase tracking-widest shadow-md hover:bg-slate-300 transition-colors">Načítať</button>
+                <button type="button" id="btnPohoda" class="bg-blue-600 text-white px-6 py-3 rounded text-xs font-bold uppercase tracking-widest shadow-md hover:bg-blue-700 transition-colors">📊 Export pre POHODU</button>
+                <button type="button" onclick="window.print()" class="bg-red-600 text-white px-6 py-3 rounded text-xs font-bold uppercase tracking-widest shadow-md hover:bg-red-700 transition-colors">🖨️ Tlačiť PDF</button>
             </div>
         </form>
     </div>
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         const firebaseConfig = { apiKey: "AIzaSyCiKb3ZKYaTUxdtiJMI2E9QvTaEIpIHr9U", authDomain: "spustaci-protokol.firebaseapp.com", projectId: "spustaci-protokol", storageBucket: "spustaci-protokol.firebasestorage.app", messagingSenderId: "860586673764", appId: "1:860586673764:web:f32fd0b6a33dbf75bec171" };
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
+        const appId = firebaseConfig.projectId;
 
+        let user = null;
         let userPhotos = [];
 
         // Photos handling
@@ -271,14 +265,89 @@
         const ctx = canvas.getContext('2d');
         canvas.width = 200; canvas.height = 65;
         let drawing = false;
-        ctx.lineWidth = 2.5; ctx.lineCap = 'round';
-        const getP = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX || e.touches[0].clientX) - r.left, y: (e.clientY || e.touches[0].clientY) - r.top }; };
+        ctx.lineWidth = 2.5; ctx.lineCap = 'round'; ctx.strokeStyle = "#000";
+
+        const getP = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX || (e.touches ? e.touches[0].clientX : 0)) - r.left, y: (e.clientY || (e.touches ? e.touches[0].clientY : 0)) - r.top }; };
         canvas.addEventListener('mousedown', (e) => { drawing = true; ctx.beginPath(); const p = getP(e); ctx.moveTo(p.x, p.y); });
         canvas.addEventListener('mousemove', (e) => { if(!drawing) return; const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); });
         window.addEventListener('mouseup', () => drawing = false);
         canvas.addEventListener('touchstart', (e) => { drawing = true; ctx.beginPath(); const p = getP(e); ctx.moveTo(p.x, p.y); e.preventDefault(); }, {passive: false});
         canvas.addEventListener('touchmove', (e) => { if(!drawing) return; const p = getP(e); ctx.lineTo(p.x, p.y); ctx.stroke(); e.preventDefault(); }, {passive: false});
         window.clearSignature = () => ctx.clearRect(0,0,canvas.width,canvas.height);
+
+        // Firestore Actions
+        window.saveToCloud = async () => {
+            if (!user) return showToast("⚠️ Cloud nie je pripravený.");
+            const pId = document.getElementById('protocolId').value.trim();
+            if (!pId) return showToast("Zadajte číslo protokolu!");
+            
+            showToast("Ukladám...");
+            const data = {
+                type: document.getElementById('deviceSelector').value,
+                content: {},
+                photos: userPhotos,
+                signature: canvas.toDataURL(),
+                ts: new Date().toISOString()
+            };
+            document.querySelectorAll('input, select, textarea').forEach(el => {
+                if (el.id && el.id !== 'protocolId') {
+                    data.content[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+                }
+            });
+            try {
+                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'protocols', pId), data);
+                showToast("✅ Uložené v cloude!");
+            } catch (e) { showToast("❌ Chyba: " + e.message); }
+        };
+
+        window.loadFromCloud = async () => {
+            if (!user) return showToast("⚠️ Cloud nie je pripravený.");
+            const pId = document.getElementById('protocolId').value.trim();
+            if (!pId) return showToast("Zadajte číslo protokolu!");
+            
+            showToast("Načítavam...");
+            try {
+                const snap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'protocols', pId));
+                if (snap.exists()) {
+                    const data = snap.data();
+                    
+                    // Nastaviť typ zariadenia
+                    document.getElementById('deviceSelector').value = data.type || 'tc';
+                    updateDeviceView();
+                    
+                    // Vyplniť polia
+                    for (let [id, val] of Object.entries(data.content)) {
+                        const el = document.getElementById(id);
+                        if (el) {
+                            if (el.type === 'checkbox') el.checked = val;
+                            else el.value = val;
+                        }
+                    }
+                    
+                    // Obnoviť fotky
+                    userPhotos = data.photos || [];
+                    renderPhotos();
+                    
+                    // Obnoviť podpis
+                    if (data.signature) {
+                        const img = new Image();
+                        img.onload = () => { ctx.clearRect(0,0,canvas.width,canvas.height); ctx.drawImage(img,0,0); };
+                        img.src = data.signature;
+                    }
+
+                    // Sync dátumu pod podpisom
+                    const dateInput = document.getElementById('date_inst');
+                    if(dateInput.value) {
+                        const [y, m, d] = dateInput.value.split('-');
+                        document.getElementById('sig_date_display').innerText = `${d}.${m}.${y}`;
+                    }
+
+                    showToast("✅ Úspešne načítané!");
+                } else {
+                    showToast("❌ Protokol nenájdený.");
+                }
+            } catch (e) { showToast("❌ Chyba: " + e.message); }
+        };
 
         // Export POHODA XML
         document.getElementById('btnPohoda').onclick = () => {
@@ -299,7 +368,7 @@
                 <ser:partnerIdentity>
                     <ser:address><ser:name>${cust}</ser:name><ser:city>${addr}</ser:city></ser:address>
                 </ser:partnerIdentity>
-                <ser:note>Spúšťací protokol č. ${pId}. PDF dokument s fotkami a podpismi priložte manuálne k tomuto záznamu cez záložku Dokumenty.</ser:note>
+                <ser:note>Spúšťací protokol č. ${pId}.</ser:note>
             </ser:servisHeader>
         </ser:servis>
     </dat:dataPackItem>
@@ -310,28 +379,27 @@
             showToast("📊 XML pre Pohodu vygenerované!");
         };
 
-        // Firebase Save
-        document.getElementById('btnSave').onclick = async () => {
-            const pId = document.getElementById('protocolId').value;
-            const appId = 'spektra-install-app'; 
-            const data = { photos: userPhotos, signature: canvas.toDataURL(), customer: document.getElementById('customer').value, ts: new Date().toISOString() };
-            try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'protocols', pId), data); showToast("✅ Uložené v cloude!"); } catch(e) { alert("Chyba: " + e.message); }
+        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.className = 'show'; setTimeout(() => t.className = '', 3000); }
+
+        window.updateDeviceView = () => {
+            const sel = document.getElementById('deviceSelector');
+            document.getElementById('printDeviceName').innerText = sel.options[sel.selectedIndex].text;
+            document.querySelectorAll('.device-section').forEach(s => s.classList.remove('active'));
+            document.getElementById('section-' + sel.value)?.classList.add('active');
         };
 
-        function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.className = 'show'; setTimeout(() => t.className = '', 3000); }
-        window.updateDeviceView = () => {
-            const v = document.getElementById('deviceSelector').value;
-            document.querySelectorAll('.device-section').forEach(s => s.classList.remove('active'));
-            document.getElementById('section-'+v).classList.add('active');
-            document.getElementById('printDeviceName').innerText = document.getElementById('deviceSelector').options[document.getElementById('deviceSelector').selectedIndex].text;
-        };
         document.getElementById('date_inst').onchange = (e) => {
+            if(!e.target.value) return;
             const [y, m, d] = e.target.value.split('-');
             document.getElementById('sig_date_display').innerText = `${d}.${m}.${y}`;
         };
-        signInAnonymously(auth).then(() => {
-            document.getElementById('authBadge').innerHTML = "🟢 Cloud aktívny";
+
+        onAuthStateChanged(auth, (u) => {
+            user = u;
+            const badge = document.getElementById('authBadge');
+            if (u) badge.innerHTML = "🟢 Cloud aktívny";
         });
+        signInAnonymously(auth);
     </script>
 </body>
 </html>
