@@ -3,312 +3,670 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Spektra Install - Protokol</title>
+    <title>Spektra Install - A4 Protokol</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400&family=Montserrat:wght@400&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Inter', sans-serif; font-weight: 400 !important; }
+        body { font-family: 'Inter', sans-serif; font-weight: 400 !important; -webkit-tap-highlight-color: transparent; }
         * { font-weight: 400 !important; }
         canvas { touch-action: none; cursor: crosshair; }
+        .pdf-page { width: 100%; }
+        .page-break-before { page-break-before: always; break-before: page; }
+        .photo-slot img { display: block; }
+
         .toast {
-            visibility: hidden; min-width: 250px; background: #1e293b; color: #fff;
-            text-align: center; border-radius: 8px; padding: 16px; position: fixed;
-            z-index: 10000; left: 50%; bottom: 30px; transform: translateX(-50%);
+            visibility: hidden;
+            min-width: 250px;
+            background: #1e293b;
+            color: #fff;
+            text-align: center;
+            border-radius: 8px;
+            padding: 16px;
+            position: fixed;
+            z-index: 10000;
+            left: 50%;
+            bottom: 30px;
+            transform: translateX(-50%);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
         }
         .toast.show { visibility: visible; animation: fadein 0.5s; }
-        @keyframes fadein { from {bottom: 0; opacity: 0;} to {bottom: 30px; opacity: 1;} }
+        @keyframes fadein { from { bottom: 0; opacity: 0; } to { bottom: 30px; opacity: 1; } }
+
+        .section-title {
+            text-transform: uppercase;
+            font-size: 10px;
+            letter-spacing: 2px;
+            color: #94a3b8;
+            border-bottom: 1px solid #f1f5f9;
+            padding-bottom: 6px;
+            margin-bottom: 12px;
+            margin-top: 24px;
+            font-style: italic;
+        }
+
+        @page {
+            size: A4;
+            margin: 10mm 15mm;
+        }
+
         @media print {
             .no-print { display: none !important; }
-            body { background: white; padding: 0; }
-            .page-container { border: none !important; box-shadow: none !important; width: 100%; max-width: 100%; margin: 0; padding: 0; }
+            body { background: white; padding: 0; color: black; }
+            .page-container {
+                border: none !important;
+                box-shadow: none !important;
+                width: 100% !important;
+                max-width: none !important;
+                margin: 0 !important;
+                padding: 0 !important;
+                border-radius: 0 !important;
+                min-height: auto !important;
+            }
+            .pdf-page {
+                min-height: 267mm;
+                padding: 0;
+                margin: 0;
+            }
+            .page-break-before {
+                page-break-before: always !important;
+                break-before: page !important;
+                margin-top: 0 !important;
+            }
+            .border-red-600 { border-color: #e11d48 !important; border-bottom-width: 3px !important; }
+            input, select, textarea { border: none !important; color: black !important; background: transparent !important; }
+            .bg-slate-50, .bg-slate-100, .bg-green-50, .bg-rose-50 { background-color: inherit !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+            .section-title { color: #64748b !important; border-bottom: 1px solid #e2e8f0 !important; }
+            canvas { border: 1px solid #f1f5f9 !important; }
+            .photo-slot {
+                break-inside: avoid;
+                page-break-inside: avoid;
+            }
         }
     </style>
 </head>
-<body class="bg-slate-50 p-0 md:p-8 text-slate-700">
-
+<body class="bg-slate-100 p-0 md:p-6 text-slate-700">
     <div id="toast" class="toast">Správa</div>
 
-    <!-- Modálne okno Archív -->
     <div id="archiveModal" class="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-[200] hidden items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[80vh]">
+        <div class="bg-white w-full max-w-2xl rounded-2xl shadow-2xl flex flex-col max-h-[85vh]">
             <div class="p-6 border-b flex justify-between items-center bg-slate-50 rounded-t-2xl">
-                <span class="uppercase text-[10px] tracking-widest text-slate-400">Archív protokolov</span>
-                <button onclick="toggleModal(false)" class="text-slate-400 hover:text-red-600 text-2xl leading-none">&times;</button>
+                <span class="uppercase text-[9px] tracking-widest text-slate-400">Archív protokolov</span>
+                <button type="button" onclick="toggleModal(false)" class="text-slate-400 hover:text-red-600 text-2xl leading-none">&times;</button>
             </div>
             <div class="p-4 border-b">
-                <input type="text" id="archiveSearch" placeholder="🔍 Hľadať zákazníka..." class="w-full px-4 py-3 bg-white rounded-xl outline-none border border-slate-200 text-sm">
+                <input type="text" id="archiveSearch" placeholder="🔍 Hľadať podľa mena alebo čísla..." class="w-full px-4 py-3 bg-white rounded-xl outline-none border border-slate-200 text-sm">
             </div>
-            <div id="archiveList" class="overflow-y-auto flex-grow p-4 space-y-3">
-                <!-- Tu sa vygeneruje zoznam -->
-            </div>
+            <div id="archiveList" class="overflow-y-auto flex-grow p-4 space-y-3"></div>
         </div>
     </div>
 
-    <div class="page-container max-w-[850px] mx-auto bg-white p-6 md:p-12 min-h-screen flex flex-col relative border border-slate-200 print:border-none print:p-0 shadow-xl">
-        
-        <!-- HLAVIČKA -->
-        <div class="flex flex-col md:flex-row justify-between items-end border-b-2 border-red-600 pb-6 mb-10 gap-4 print:flex-row">
+    <div class="page-container max-w-[850px] mx-auto bg-white p-6 md:p-12 min-h-screen flex flex-col relative border border-slate-200 shadow-2xl rounded-xl">
+        <div class="flex flex-col md:flex-row justify-between items-end border-b-2 border-red-600 pb-4 mb-8 gap-4 print:flex-row print:justify-between">
             <div>
                 <h1 class="text-4xl tracking-tighter uppercase leading-none text-slate-800" style="font-family: 'Montserrat', sans-serif;">
                     SPEKTRA <span class="text-red-600">INSTALL</span>
                 </h1>
-                <div class="mt-2 text-[11px] text-slate-500 uppercase tracking-[0.2em] leading-relaxed">
-                    <p>Rajecká Lesná 98, 013 15</p>
-                    <p class="text-[10px] text-slate-400">IČO: 53690036 | IČ DPH: SK2121459450</p>
+                <div class="mt-2 text-[10px] text-slate-500 uppercase tracking-[0.2em] leading-relaxed">
+                    <p>Hollého 210, 015 01 Rajec</p>
+                    <p class="text-slate-400">IČO: 53690036 | IČ DPH: SK2121459450</p>
                 </div>
             </div>
-            
-            <div class="flex flex-col items-center no-print">
-                <select id="deviceType" onchange="updateView()" class="border border-slate-200 rounded-lg px-4 py-2 text-xs text-red-600 bg-white outline-none mb-1 cursor-pointer">
-                    <option value="gree">GREE Klimatizácia</option>
-                    <option value="tc">Panasonic Tepelné čerpadlo</option>
+
+            <div class="flex flex-col items-center no-print gap-1">
+                <select id="deviceType" onchange="updateView()" class="border border-slate-200 rounded-lg px-4 py-1.5 text-xs text-red-600 bg-white outline-none cursor-pointer appearance-none text-center hover:border-red-300">
+                    <option value="hp">Tepelné čerpadlo</option>
+                    <option value="ac">Klimatizácia</option>
+                    <option value="gas">Plynový kotol</option>
+                    <option value="electric">Elektrokotol</option>
                 </select>
-                <div id="cloudStatus" class="text-[8px] text-slate-300 uppercase tracking-widest">Pripájanie...</div>
+                <div id="cloudStatus" class="text-[7px] text-slate-300 uppercase tracking-widest">Cloud: lokálny režim</div>
             </div>
 
             <div class="flex flex-col items-end">
-                <h2 class="text-[14px] uppercase text-slate-300 mb-1 tracking-[0.2em] italic">Odovzdávací protokol</h2>
-                <div class="border border-slate-900 px-4 py-2 flex items-center bg-white text-[14px]">
-                    <span class="text-slate-300 mr-2 uppercase text-[10px]">Číslo:</span>
-                    <input type="text" id="protocolId" class="w-28 text-red-600 text-right outline-none bg-transparent" value="SP-2026/001">
-                    <button type="button" onclick="openArchive()" class="no-print ml-4 text-slate-200 hover:text-red-600">
-                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
+                <h2 class="text-[15px] uppercase text-slate-700 mb-3 tracking-[0.3em] italic font-normal">Uvedenie do prevádzky</h2>
+                <div class="border border-slate-900 px-4 py-1.5 flex items-center bg-white text-[13px]">
+                    <span class="text-slate-300 mr-2 uppercase text-[9px] font-normal">Číslo:</span>
+                    <input type="text" id="protocolId" class="w-32 text-red-600 text-right outline-none bg-transparent" value="SP-2026/001">
+                    <button type="button" onclick="openArchive()" class="no-print ml-4 text-slate-200 hover:text-red-600 transition-transform hover:scale-110" title="Archív">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" /></svg>
                     </button>
                 </div>
             </div>
         </div>
 
-        <!-- FORMULÁR -->
-        <div class="flex-grow flex flex-col gap-10">
-            <!-- 01. VŠEOBECNÉ -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-8">
-                <div class="border border-slate-100 p-6 rounded-2xl bg-white">
-                    <h3 class="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic">01. Zhotoviteľ</h3>
-                    <div class="grid gap-4 text-[12px]">
-                        <div class="flex justify-between border-b border-slate-50 pb-1"><span>Firma</span><input type="text" id="inst_company" class="text-right outline-none w-1/2 bg-transparent" value="Spektra install s.r.o."></div>
-                        <div class="flex justify-between border-b border-slate-50 pb-1"><span>Technik</span><input type="text" id="inst_elec" class="text-right outline-none w-1/2 bg-transparent" value="§22 č.o. 18122868"></div>
-                        <div class="flex justify-between border-b border-slate-50 pb-1"><span>Dátum</span><input type="date" id="date_inst" class="text-right outline-none bg-transparent"></div>
+        <form id="mainForm" onsubmit="return false">
+            <div class="pdf-page">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="border border-slate-100 p-5 rounded-xl bg-white shadow-sm">
+                        <div class="section-title mt-0">01. Zhotoviteľ</div>
+                        <div class="grid gap-3 text-[11px]">
+                            <div class="flex justify-between border-b border-slate-50 pb-1"><span>Firma</span><input type="text" id="inst_company" class="text-right outline-none w-1/2 bg-transparent" value="Spektra install s.r.o."></div>
+                            <div class="flex justify-between border-b border-slate-50 pb-1"><span>Technik</span><input type="text" id="inst_elec" class="text-right outline-none w-1/2 bg-transparent" value="§22 č.o. 18122868"></div>
+                            <div class="flex justify-between"><span>Dátum</span><input type="date" id="date_inst" class="text-right outline-none bg-transparent"></div>
+                        </div>
+                    </div>
+                    <div class="border border-slate-100 p-5 rounded-xl bg-white shadow-sm">
+                        <div class="section-title mt-0">02. Zákazník</div>
+                        <div class="grid gap-3 text-[11px]">
+                            <div class="flex justify-between border-b border-slate-50 pb-1"><span>Meno</span><input type="text" id="customer" class="text-right outline-none w-1/2 bg-transparent" placeholder="..."></div>
+                            <div class="flex justify-between border-b border-slate-50 pb-1"><span>Adresa</span><input type="text" id="address" class="text-right outline-none w-1/2 bg-transparent" placeholder="..."></div>
+                            <div class="flex justify-between"><span>Mobil</span><input type="text" id="phone" class="text-right outline-none w-1/2 bg-transparent" placeholder="..."></div>
+                        </div>
                     </div>
                 </div>
-                <div class="border border-slate-100 p-6 rounded-2xl bg-white">
-                    <h3 class="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic">02. Zákazník</h3>
-                    <div class="grid gap-4 text-[12px]">
-                        <div class="flex justify-between border-b border-slate-50 pb-1"><span>Meno</span><input type="text" id="customer" class="text-right outline-none w-1/2 bg-transparent"></div>
-                        <div class="flex justify-between border-b border-slate-50 pb-1"><span>Adresa</span><input type="text" id="address" class="text-right outline-none w-1/2 bg-transparent"></div>
-                        <div class="flex justify-between border-b border-slate-50 pb-1"><span>Mobil</span><input type="text" id="phone" class="text-right outline-none w-1/2 bg-transparent"></div>
+
+                <div class="section-title">03. Údaje o zariadení</div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <span class="text-[8px] uppercase text-red-500 block mb-2 tracking-widest italic">Vonkajšia jednotka</span>
+                        <div class="grid gap-2 text-[10px]">
+                            <div class="flex justify-between border-b border-slate-200 pb-0.5"><span>Model</span><input type="text" id="model_ext" class="text-right outline-none w-1/2 bg-transparent"></div>
+                            <div class="flex justify-between"><span>Sériové číslo</span><input type="text" id="sn_ext" class="text-right outline-none w-1/2 bg-transparent"></div>
+                        </div>
+                    </div>
+                    <div class="bg-slate-50 p-4 rounded-xl border border-slate-100">
+                        <span class="text-[8px] uppercase text-red-500 block mb-2 tracking-widest italic">Vnútorná jednotka</span>
+                        <div class="grid gap-2 text-[10px]">
+                            <div class="flex justify-between border-b border-slate-200 pb-0.5"><span>Model</span><input type="text" id="model_int" class="text-right outline-none w-1/2 bg-transparent"></div>
+                            <div class="flex justify-between"><span>Sériové číslo</span><input type="text" id="sn_int" class="text-right outline-none w-1/2 bg-transparent"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="greeSection" class="space-y-6 hidden">
+                    <div class="border border-slate-100 p-5 rounded-xl">
+                        <div class="section-title mt-0">04. Chladivový okruh – klimatizácia</div>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-[10px]">
+                            <div class="flex flex-col gap-0.5 border-b pb-1"><span>Dĺžka potrubia (m)</span><input type="text" id="pipe_length" class="outline-none bg-transparent"></div>
+                            <div class="flex flex-col gap-0.5 border-b pb-1"><span>Tlaková skúška (bar)</span><input type="text" id="leak_test" class="outline-none text-red-600 bg-transparent" value="42 bar"></div>
+                            <div class="flex flex-col gap-0.5 border-b pb-1"><span>Vákuovanie</span><input type="text" id="vacuum_val" class="outline-none bg-transparent" value="30 min / 270 Pa"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="panasonicSection" class="space-y-6">
+                    <div class="border border-slate-100 p-5 rounded-xl">
+                        <div class="section-title mt-0">04. Merané údaje – tepelné čerpadlo</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3 text-[10px]">
+                            <div class="flex justify-between border-b pb-0.5"><span>Teplota výstup (°C)</span><input type="text" id="hp_flow" class="w-16 text-right outline-none bg-transparent"></div>
+                            <div class="flex justify-between border-b pb-0.5"><span>Teplota spiatočka (°C)</span><input type="text" id="hp_return" class="w-16 text-right outline-none bg-transparent"></div>
+                            <div class="flex justify-between border-b pb-0.5"><span>Tlak vody (bar)</span><input type="text" id="hp_pressure" class="w-16 text-right outline-none bg-transparent" value="1.5"></div>
+                            <div class="flex justify-between border-b pb-0.5"><span>Prúd kompresora (A)</span><input type="text" id="hp_current" class="w-16 text-right outline-none bg-transparent"></div>
+                            <div class="flex justify-between border-b pb-0.5"><span>Napätie (V)</span><input type="text" id="hp_voltage" class="w-16 text-right outline-none bg-transparent"></div>
+                            <div class="flex justify-between border-b pb-0.5"><span>COP / výkon</span><input type="text" id="hp_cop" class="w-16 text-right outline-none bg-transparent"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="boilerSection" class="space-y-6 hidden">
+                    <div class="border border-slate-100 p-5 rounded-xl">
+                        <div class="section-title mt-0">04. Kotol – merané údaje</div>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-x-10 gap-y-3 text-[10px]">
+                            <div class="flex justify-between items-center border-b pb-0.5"><span>Napojenie skontrolované</span><input type="checkbox" id="boiler_connections" checked class="w-3.5 h-3.5 accent-red-600"></div>
+                            <div class="flex justify-between items-center border-b pb-0.5"><span>Tesnosť sústavy</span><input type="checkbox" id="boiler_leak_free" checked class="w-3.5 h-3.5 accent-red-600"></div>
+                            <div class="flex justify-between items-center border-b pb-0.5"><span>Tlak vody (bar)</span><input type="text" id="boiler_pressure" class="w-16 text-right outline-none bg-transparent" value="1.5"></div>
+                            <div class="flex justify-between items-center border-b pb-0.5"><span>Prúd odber (A)</span><input type="text" id="boiler_current" class="w-16 text-right outline-none bg-transparent"></div>
+                            <div class="flex justify-between items-center border-b pb-0.5"><span>Teplota výstup (°C)</span><input type="text" id="boiler_flow" class="w-16 text-right outline-none bg-transparent"></div>
+                            <div class="flex justify-between items-center border-b pb-0.5"><span>Teplota spiatočka (°C)</span><input type="text" id="boiler_return" class="w-16 text-right outline-none bg-transparent"></div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="border border-slate-100 p-5 rounded-xl mt-6 shadow-sm">
+                    <div class="section-title mt-0">05. Elektrické napätia</div>
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-center text-[9px] border-collapse">
+                            <thead>
+                                <tr class="bg-slate-50 text-slate-400">
+                                    <th class="p-1.5 border border-slate-100 uppercase text-[7px] tracking-widest">Stav</th>
+                                    <th class="p-1.5 border border-slate-100 uppercase text-[7px] tracking-widest">L1-L2</th>
+                                    <th class="p-1.5 border border-slate-100 uppercase text-[7px] tracking-widest">L2-L3</th>
+                                    <th class="p-1.5 border border-slate-100 uppercase text-[7px] tracking-widest">L3-L1</th>
+                                    <th class="p-1.5 border border-slate-100 uppercase text-[7px] tracking-widest">L1-N</th>
+                                    <th class="p-1.5 border border-slate-100 uppercase text-[7px] tracking-widest">L2-N</th>
+                                    <th class="p-1.5 border border-slate-100 uppercase text-[7px] tracking-widest">L3-N</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td class="p-1.5 border border-slate-100 bg-slate-50 text-slate-300 uppercase italic">OFF</td>
+                                    <td><input type="text" id="v12o" class="w-full text-center outline-none bg-transparent"></td>
+                                    <td><input type="text" id="v23o" class="w-full text-center outline-none bg-transparent"></td>
+                                    <td><input type="text" id="v31o" class="w-full text-center outline-none bg-transparent"></td>
+                                    <td><input type="text" id="v1no" class="w-full text-center outline-none bg-transparent"></td>
+                                    <td><input type="text" id="v2no" class="w-full text-center outline-none bg-transparent"></td>
+                                    <td><input type="text" id="v3no" class="w-full text-center outline-none bg-transparent"></td>
+                                </tr>
+                                <tr>
+                                    <td class="p-1.5 border border-slate-100 bg-rose-50 text-red-400 uppercase italic">ON</td>
+                                    <td><input type="text" id="v12" class="w-full text-center outline-none bg-transparent text-red-600"></td>
+                                    <td><input type="text" id="v23" class="w-full text-center outline-none bg-transparent text-red-600"></td>
+                                    <td><input type="text" id="v31" class="w-full text-center outline-none bg-transparent text-red-600"></td>
+                                    <td><input type="text" id="v1n" class="w-full text-center outline-none bg-transparent text-red-600"></td>
+                                    <td><input type="text" id="v2n" class="w-full text-center outline-none bg-transparent text-red-600"></td>
+                                    <td><input type="text" id="v3n" class="w-full text-center outline-none bg-transparent text-red-600"></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="p-6 border-l-4 border-red-600 bg-slate-50 italic text-[10px] text-slate-500 leading-relaxed mt-8">
+                    Zariadenie je nainštalované podľa podkladov výrobcu, boli dodržané všetky platné predpisy a normy. Po skúšobnej prevádzke zariadenie nevykazuje žiadne chyby ani nedostatky a je pripravené na bezpečnú prevádzku. Užívateľ bol oboznámený s obsluhou.
+                </div>
+
+                <div class="border border-green-600 py-5 text-center bg-green-50 rounded-2xl mt-4">
+                    <h3 class="text-green-700 uppercase text-[12px] tracking-[0.4em] italic">Spôsobilé bezpečnej prevádzky</h3>
+                </div>
+
+                <div class="mt-auto grid grid-cols-1 md:grid-cols-2 gap-10 pt-12 pb-4 border-t border-slate-100 items-end">
+                    <div class="relative text-center flex flex-col items-center justify-end">
+                        <canvas id="sigCanvas" class="mb-2 w-full bg-slate-50 border border-slate-100 rounded-xl h-32 shadow-inner"></canvas>
+                        <button type="button" onclick="clearSig()" class="no-print absolute -top-8 left-0 text-[8px] text-red-300 uppercase italic bg-red-50 px-2 py-0.5 rounded-full border">Vymazať</button>
+                        <div class="border-t border-slate-200 w-full pt-1.5 text-[9px] uppercase tracking-widest text-slate-300">Podpis zákazníka / užívateľa</div>
+                    </div>
+                    <div class="text-center flex flex-col items-center justify-end">
+                        <div class="h-[90px] flex items-center justify-center relative scale-110 mb-1">
+                            <img src="Razitko a podpis.jpg" alt="Razítko Spektra" class="max-h-full mix-blend-multiply opacity-80" onerror="this.style.display='none'">
+                        </div>
+                        <div class="border-t border-slate-200 w-full pt-1.5 text-[9px] uppercase tracking-widest text-slate-300">Uvádzací technik (Spektra install)</div>
                     </div>
                 </div>
             </div>
 
-            <!-- DYNAMICKÉ SEKCIE -->
-            <div id="greeSection" class="space-y-8">
-                <div class="border border-slate-100 p-6 rounded-2xl">
-                    <h3 class="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic">03. Chladivový okruh (GREE)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 text-[11px]">
-                        <div class="flex flex-col gap-1 border-b pb-1"><span>Dĺžka potrubia (m)</span><input type="text" id="pipe_length" class="outline-none"></div>
-                        <div class="flex flex-col gap-1 border-b pb-1"><span>Tlaková skúška (bar)</span><input type="text" id="leak_test" class="outline-none text-red-600" value="42 bar"></div>
-                        <div class="flex flex-col gap-1 border-b pb-1"><span>Vákuovanie (min/Pa)</span><input type="text" id="vacuum_val" class="outline-none" value="30 min / 270 Pa"></div>
+            <div class="pdf-page page-break-before mt-8 print:mt-0">
+                <div class="border border-slate-100 p-5 rounded-xl bg-white shadow-sm">
+                    <div class="flex items-center justify-between gap-4 mb-4">
+                        <div class="section-title mt-0 mb-0 border-b-0 pb-0">06. Fotodokumentácia – strana 2</div>
+                        <label class="no-print inline-flex items-center gap-2 bg-white text-slate-600 border border-slate-200 px-4 py-2 rounded-full text-[10px] uppercase tracking-widest hover:bg-slate-50 cursor-pointer">
+                            <span>Pridať fotografie</span>
+                            <input type="file" id="photoUpload" class="hidden" accept="image/*" multiple>
+                        </label>
+                    </div>
+                    <div class="text-[10px] text-slate-500 mb-5 italic">Do PDF sa vytlačí druhá strana ako samostatný A4 hárok. Môžete vložiť fotografie zariadenia, štítkov, zapojenia alebo miesta montáže.</div>
+
+                    <div id="photoGrid" class="grid grid-cols-2 gap-4">
+                        <div class="photo-slot aspect-[1/1] border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden relative">
+                            <span class="photo-placeholder text-[10px] uppercase tracking-widest text-slate-300 text-center px-3">Foto 1</span>
+                            <img class="photo-preview hidden w-full h-full object-cover" alt="Foto 1">
+                        </div>
+                        <div class="photo-slot aspect-[1/1] border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden relative">
+                            <span class="photo-placeholder text-[10px] uppercase tracking-widest text-slate-300 text-center px-3">Foto 2</span>
+                            <img class="photo-preview hidden w-full h-full object-cover" alt="Foto 2">
+                        </div>
+                        <div class="photo-slot aspect-[1/1] border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden relative">
+                            <span class="photo-placeholder text-[10px] uppercase tracking-widest text-slate-300 text-center px-3">Foto 3</span>
+                            <img class="photo-preview hidden w-full h-full object-cover" alt="Foto 3">
+                        </div>
+                        <div class="photo-slot aspect-[1/1] border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden relative">
+                            <span class="photo-placeholder text-[10px] uppercase tracking-widest text-slate-300 text-center px-3">Foto 4</span>
+                            <img class="photo-preview hidden w-full h-full object-cover" alt="Foto 4">
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <div id="tcSection" class="hidden space-y-8">
-                <div class="border border-slate-100 p-6 rounded-2xl">
-                    <h3 class="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic">03. Inštalácia (Panasonic)</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-x-12 gap-y-4 text-[11px]">
-                        <div class="flex justify-between items-center border-b pb-1"><span>Umiestnené podľa návodu</span><input type="checkbox" id="tc_placed" checked></div>
-                        <div class="flex justify-between items-center border-b pb-1"><span>Magnetický filter</span><input type="checkbox" id="tc_filter" checked></div>
-                        <div class="flex justify-between items-center border-b pb-1"><span>pH vody (7.0-8.5)</span><input type="text" id="tc_ph" class="w-16 text-right outline-none" value="7.5"></div>
-                    </div>
-                </div>
+            <div class="mt-12 no-print flex flex-wrap justify-center gap-4 border-t border-slate-50 pt-8 pb-16">
+                <button type="button" onclick="saveToCloud()" class="bg-slate-900 text-white px-10 py-4 rounded-full text-[10px] uppercase tracking-widest shadow-xl hover:bg-black transition-all italic active:scale-95">Uložiť do cloudu</button>
+                <button type="button" onclick="openArchive()" class="bg-white text-slate-600 border border-slate-200 px-10 py-4 rounded-full text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all italic active:scale-95">Archív</button>
+                <button type="button" onclick="window.print()" class="bg-red-600 text-white px-10 py-4 rounded-full text-[10px] uppercase tracking-widest shadow-xl hover:bg-red-700 transition-all italic active:scale-95">Tlačiť PDF</button>
             </div>
-
-            <!-- SPOLOČNÉ NAPÄTIA -->
-            <div class="border border-slate-100 p-6 rounded-2xl">
-                <h3 class="text-[10px] uppercase text-slate-400 border-b pb-2 mb-6 tracking-widest italic">04. Elektrické merania</h3>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-center text-[10px] border-collapse">
-                        <thead><tr class="bg-slate-50"><th>STAV</th><th>L1-N</th><th>L2-N</th><th>L3-N</th><th>L1-L2</th><th>L2-L3</th></tr></thead>
-                        <tbody>
-                            <tr><td class="p-2 border border-slate-100 uppercase text-slate-300">OFF</td>
-                                <td><input type="text" id="v1" class="w-full text-center outline-none"></td>
-                                <td><input type="text" id="v2" class="w-full text-center outline-none"></td>
-                                <td><input type="text" id="v3" class="w-full text-center outline-none"></td>
-                                <td><input type="text" id="v12" class="w-full text-center outline-none"></td>
-                                <td><input type="text" id="v23" class="w-full text-center outline-none"></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="p-6 border-l-4 border-red-600 bg-slate-50 italic text-[11px] text-slate-500 leading-relaxed">
-                Zariadenie je nainštalované podľa podkladov výrobcu, boli dodržané všetky platné predpisy a normy. Zariadenie nevykazuje žiadne chyby a je pripravené na bezpečnú prevádzku.
-            </div>
-
-            <div class="border border-green-600 py-6 text-center bg-green-50 rounded-2xl">
-                <h3 class="text-green-700 uppercase text-[13px] tracking-[0.3em] italic">Spôsobilé bezpečnej prevádzky</h3>
-            </div>
-
-            <!-- PODPISY -->
-            <div class="mt-auto grid grid-cols-1 md:grid-cols-2 gap-12 pt-12 pb-6 border-t border-slate-100 items-end">
-                <div class="relative text-center flex flex-col items-center justify-end">
-                    <canvas id="sigCanvas" class="mb-2 w-full bg-slate-50 border border-slate-100 rounded-xl h-32"></canvas>
-                    <button type="button" onclick="clearSig()" class="no-print absolute -top-8 left-0 text-[9px] text-red-300 uppercase italic">Vymazať</button>
-                    <div class="border-t border-slate-200 w-full pt-2 text-[9px] uppercase tracking-widest text-slate-300">Podpis zákazníka</div>
-                </div>
-                <div class="text-center flex flex-col items-center justify-end">
-                    <div class="h-[100px] flex items-center justify-center relative scale-110 mb-2">
-                        <img src="Razitko a podpis.jpg" alt="Razítko" class="max-h-full mix-blend-multiply opacity-80" onerror="this.style.display='none'">
-                    </div>
-                    <div class="border-t border-slate-200 w-full pt-2 text-[9px] uppercase tracking-widest text-slate-300">Technik (Spektra)</div>
-                </div>
-            </div>
-
-            <!-- AKCIE -->
-            <div class="mt-16 no-print flex flex-wrap justify-center gap-4 border-t border-slate-50 pt-10 pb-16">
-                <button onclick="saveToCloud()" class="bg-slate-900 text-white px-10 py-4 rounded-full text-[10px] uppercase tracking-widest shadow-xl hover:bg-black transition-all italic">Uložiť do cloudu</button>
-                <button onclick="toggleModal(true); fetchArchive();" class="bg-white text-slate-600 border border-slate-200 px-10 py-4 rounded-full text-[10px] uppercase tracking-widest hover:bg-slate-50 transition-all italic">Archív</button>
-                <button onclick="window.print()" class="bg-red-600 text-white px-10 py-4 rounded-full text-[10px] uppercase tracking-widest shadow-xl hover:bg-red-700 transition-all italic">Tlačiť PDF</button>
-            </div>
-        </div>
+        </form>
     </div>
 
     <script type="module">
-        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, getDoc, collection, getDocs } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        const CLOUD_COLLECTION_PATH = ['artifacts', 'spustaci-protokol', 'public', 'data', 'protocols'];
 
-        // Firebase konfigurácia zo systémových premenných alebo manuálne
-        const config = JSON.parse(window.__firebase_config || '{"apiKey":"","projectId":"spustaci-protokol"}');
-        const app = initializeApp(config);
-        const auth = getAuth(app);
-        const db = getFirestore(app);
-        const appId = window.__app_id || 'spustaci-protokol';
-
-        let user = null;
-        let protocols = [];
-
-        onAuthStateChanged(auth, u => {
-            user = u;
-            document.getElementById('cloudStatus').innerText = u ? "🟢 Cloud pripojený" : "⚪ Odpojené";
-        });
-        signInAnonymously(auth);
-
-        // UI Logika
-        window.updateView = () => {
-            const val = document.getElementById('deviceType').value;
-            document.getElementById('greeSection').classList.toggle('hidden', val !== 'gree');
-            document.getElementById('tcSection').classList.toggle('hidden', val !== 'tc');
+        const state = {
+            user: null,
+            allProtocols: [],
+            drawing: false,
+            firebaseEnabled: false,
+            db: null,
+            auth: null,
+            appId: 'spustaci-protokol',
         };
 
-        window.toggleModal = (show) => document.getElementById('archiveModal').classList.toggle('hidden', !show);
-
-        // Podpis
         const canvas = document.getElementById('sigCanvas');
         const ctx = canvas.getContext('2d');
-        let drawing = false;
-        canvas.width = canvas.offsetWidth;
-        canvas.height = canvas.offsetHeight;
-        ctx.lineWidth = 1.5; ctx.lineCap = 'round';
+        const archiveModal = document.getElementById('archiveModal');
+        const archiveSearch = document.getElementById('archiveSearch');
+        const archiveList = document.getElementById('archiveList');
+        const cloudStatus = document.getElementById('cloudStatus');
+        const form = document.getElementById('mainForm');
+        const photoUpload = document.getElementById('photoUpload');
 
-        const getXY = (e) => {
-            const rect = canvas.getBoundingClientRect();
-            const x = (e.clientX || e.touches[0].clientX) - rect.left;
-            const y = (e.clientY || e.touches[0].clientY) - rect.top;
-            return [x, y];
-        };
-        canvas.onmousedown = canvas.ontouchstart = (e) => { drawing = true; ctx.beginPath(); ctx.moveTo(...getXY(e)); if(e.touches) e.preventDefault(); };
-        canvas.onmousemove = canvas.ontouchmove = (e) => { if(!drawing) return; ctx.lineTo(...getXY(e)); ctx.stroke(); if(e.touches) e.preventDefault(); };
-        window.onmouseup = window.ontouchend = () => drawing = false;
-        window.clearSig = () => ctx.clearRect(0,0,canvas.width,canvas.height);
+        function showToast(message) {
+            const t = document.getElementById('toast');
+            t.innerText = message;
+            t.classList.add('show');
+            setTimeout(() => t.classList.remove('show'), 3000);
+        }
 
-        // Firebase funkcie
-        window.saveToCloud = async () => {
-            if(!user) return showToast("⚠️ Cloud nie je pripravený");
-            const pId = document.getElementById('protocolId').value.trim();
-            if(!pId) return showToast("⚠️ Zadajte číslo protokolu");
+        function safeJsonParse(value, fallback) {
+            try {
+                return JSON.parse(value);
+            } catch {
+                return fallback;
+            }
+        }
 
-            showToast("💾 Ukladám...");
+        function hasValidFirebaseConfig(config) {
+            if (!config || typeof config !== 'object') return false;
+            const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : '';
+            const projectId = typeof config.projectId === 'string' ? config.projectId.trim() : '';
+            return apiKey.length > 0 && projectId.length > 0;
+        }
+
+        function updateCloudStatus(text, tone = 'muted') {
+            const toneClassMap = {
+                muted: 'text-slate-300',
+                ok: 'text-green-500',
+                warn: 'text-amber-500',
+                error: 'text-red-500',
+            };
+            cloudStatus.className = `text-[7px] uppercase tracking-widest ${toneClassMap[tone] || toneClassMap.muted}`;
+            cloudStatus.textContent = text;
+        }
+
+        function getStorageKey() {
+            return 'spustaci-protokol-local-archive';
+        }
+
+        function readLocalProtocols() {
+            const raw = localStorage.getItem(getStorageKey());
+            const parsed = safeJsonParse(raw || '[]', []);
+            return Array.isArray(parsed) ? parsed : [];
+        }
+
+        function writeLocalProtocols(items) {
+            localStorage.setItem(getStorageKey(), JSON.stringify(items));
+        }
+
+        function protocolDocId(protocolId) {
+            return protocolId.replace(/\//g, '-').trim();
+        }
+
+        function collectPhotos() {
+            return Array.from(document.querySelectorAll('#photoGrid .photo-preview')).map((img) => img.getAttribute('src') || '');
+        }
+
+        function restorePhotos(photos = []) {
+            const previews = Array.from(document.querySelectorAll('#photoGrid .photo-preview'));
+            const placeholders = Array.from(document.querySelectorAll('#photoGrid .photo-placeholder'));
+            previews.forEach((img, index) => {
+                const src = photos[index] || '';
+                if (src) {
+                    img.src = src;
+                    img.classList.remove('hidden');
+                    placeholders[index].classList.add('hidden');
+                } else {
+                    img.removeAttribute('src');
+                    img.classList.add('hidden');
+                    placeholders[index].classList.remove('hidden');
+                }
+            });
+        }
+
+        function collectFormData() {
             const data = {
                 type: document.getElementById('deviceType').value,
                 content: {},
                 sig: canvas.toDataURL(),
-                ts: new Date().toISOString()
+                photos: collectPhotos(),
+                ts: new Date().toISOString(),
+                displayId: document.getElementById('protocolId').value.trim(),
             };
-            document.querySelectorAll('input, select').forEach(el => {
-                if(el.id && el.id !== 'protocolId') data.content[el.id] = el.type === 'checkbox' ? el.checked : el.value;
+
+            document.querySelectorAll('input, select').forEach((el) => {
+                if (!el.id || el.id === 'protocolId' || el.id === 'photoUpload') return;
+                data.content[el.id] = el.type === 'checkbox' ? el.checked : el.value;
             });
 
-            try {
-                await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'protocols', pId.replace(/\//g, '-')), data);
-                showToast("✅ Uložené");
-            } catch(e) { showToast("❌ Chyba: " + e.message); }
-        };
-
-        window.fetchArchive = async () => {
-            if(!user) return;
-            const list = document.getElementById('archiveList');
-            list.innerHTML = '<div class="text-center py-10 text-[10px] uppercase">Načítavam...</div>';
-            try {
-                const snap = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'protocols'));
-                protocols = [];
-                snap.forEach(d => protocols.push({id: d.id, ...d.data()}));
-                renderArchive();
-            } catch(e) { showToast("❌ Chyba archívu"); }
-        };
+            return data;
+        }
 
         function renderArchive() {
-            const term = document.getElementById('archiveSearch').value.toLowerCase();
-            const list = document.getElementById('archiveList');
-            list.innerHTML = '';
-            protocols.filter(p => p.id.toLowerCase().includes(term) || (p.content.customer || '').toLowerCase().includes(term))
-            .forEach(p => {
-                const div = document.createElement('div');
-                div.className = "p-4 border rounded-xl flex justify-between items-center bg-white hover:bg-slate-50";
-                div.innerHTML = `<div><div class="text-red-600 text-sm">${p.id}</div><div class="text-xs text-slate-500">${p.content.customer || 'Bez mena'}</div></div>
-                                 <div class="flex gap-2">
-                                     <button onclick="loadProtocol('${p.id}')" class="text-[9px] uppercase border px-3 py-1.5 rounded-lg">Načítať</button>
-                                     <button onclick="loadTemplate('${p.id}')" class="text-[9px] uppercase bg-red-50 text-red-600 px-3 py-1.5 rounded-lg">Šablóna</button>
-                                 </div>`;
-                list.appendChild(div);
+            const term = archiveSearch.value.toLowerCase().trim();
+            archiveList.innerHTML = '';
+
+            const filtered = state.allProtocols.filter((p) => {
+                const pid = String(p.displayId || p.id || '').toLowerCase();
+                const customer = String((p.content && p.content.customer) || '').toLowerCase();
+                return pid.includes(term) || customer.includes(term);
             });
-        }
-        document.getElementById('archiveSearch').oninput = renderArchive;
 
-        window.loadProtocol = async (id) => {
-            const p = protocols.find(x => x.id === id);
-            if(!p) return;
-            document.getElementById('protocolId').value = id;
-            document.getElementById('deviceType').value = p.type;
-            updateView();
-            for(let [k,v] of Object.entries(p.content)) {
-                const el = document.getElementById(k);
-                if(el) { if(el.type === 'checkbox') el.checked = v; else el.value = v; }
+            if (filtered.length === 0) {
+                archiveList.innerHTML = '<div class="text-center py-10 uppercase text-[8px] tracking-widest text-slate-300">Žiadne záznamy</div>';
+                return;
             }
-            const img = new Image();
-            img.onload = () => { clearSig(); ctx.drawImage(img,0,0); };
-            img.src = p.sig;
-            toggleModal(false);
-            showToast("✅ Načítané");
-        };
 
-        window.loadTemplate = (id) => {
-            loadProtocol(id);
-            document.getElementById('protocolId').value = '';
-            document.getElementById('customer').value = '';
-            document.getElementById('address').value = '';
-            clearSig();
-        };
-
-        function showToast(m) {
-            const t = document.getElementById('toast');
-            t.innerText = m; t.classList.add('show');
-            setTimeout(() => t.classList.remove('show'), 3000);
+            filtered
+                .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')))
+                .forEach((p) => {
+                    const item = document.createElement('div');
+                    item.className = 'p-4 border border-slate-100 rounded-xl flex justify-between items-center bg-white hover:bg-slate-50 transition-colors gap-3';
+                    item.innerHTML = `
+                        <div>
+                            <div class="text-red-600 text-sm">${p.displayId || p.id}</div>
+                            <div class="text-xs text-slate-800">${(p.content && p.content.customer) || 'Bez mena'}</div>
+                        </div>
+                        <div class="flex gap-2 shrink-0">
+                            <button type="button" onclick="loadProtocol('${p.id}', false)" class="text-[9px] uppercase border px-3 py-2 rounded-lg">Otvoriť</button>
+                            <button type="button" onclick="loadProtocol('${p.id}', true)" class="text-[9px] uppercase bg-red-50 text-red-600 px-3 py-2 rounded-lg">Šablóna</button>
+                        </div>`;
+                    archiveList.appendChild(item);
+                });
         }
 
-        // Nastavenie dnešného dátumu
-        document.getElementById('date_inst').valueAsDate = new Date();
-    </script>
-</body>
-</html>
+        async function saveToCloudInternal(data) {
+            const { doc, setDoc } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+            const id = protocolDocId(data.displayId);
+            await setDoc(doc(state.db, ...CLOUD_COLLECTION_PATH, id), data);
+        }
+
+        async function readCloudProtocols() {
+            const { collection, getDocs } = await import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js');
+            const snap = await getDocs(collection(state.db, ...CLOUD_COLLECTION_PATH));
+            const rows = [];
+            snap.forEach((d) => rows.push({ id: d.id, ...d.data() }));
+            return rows;
+        }
+
+        async function initFirebaseIfPossible() {
+            const configStr = typeof window.__firebase_config !== 'undefined'
+                ? window.__firebase_config
+                : '{"apiKey":"","projectId":"spustaci-protokol"}';
+            const firebaseConfig = safeJsonParse(configStr, {});
+            state.appId = typeof window.__app_id !== 'undefined' && window.__app_id ? window.__app_id : 'spustaci-protokol';
+
+            if (!hasValidFirebaseConfig(firebaseConfig)) {
+                updateCloudStatus('Cloud: lokálny režim', 'warn');
+                console.warn('Firebase skipped: missing or invalid configuration.');
+                return;
+            }
+
+            try {
+                const [{ initializeApp }, authModule, firestoreModule] = await Promise.all([
+                    import('https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js'),
+                    import('https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js'),
+                    import('https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js'),
+                ]);
+
+                const app = initializeApp(firebaseConfig);
+                state.auth = authModule.getAuth(app);
+                state.db = firestoreModule.getFirestore(app);
+                state.firebaseEnabled = true;
+                updateCloudStatus('Cloud: pripájanie...', 'muted');
+
+                authModule.onAuthStateChanged(state.auth, (u) => {
+                    state.user = u;
+                    updateCloudStatus(u ? '🟢 Cloud pripojený' : '⚪ Cloud odpojený', u ? 'ok' : 'warn');
+                });
+
+                const token = typeof window.__initial_auth_token !== 'undefined' ? window.__initial_auth_token : null;
+                if (token && token.trim() !== '') {
+                    await authModule.signInWithCustomToken(state.auth, token);
+                } else {
+                    await authModule.signInAnonymously(state.auth);
+                }
+            } catch (error) {
+                state.firebaseEnabled = false;
+                state.user = null;
+                state.db = null;
+                state.auth = null;
+                updateCloudStatus('Cloud: lokálny režim', 'warn');
+                console.error('Firebase disabled after init failure:', error);
+            }
+        }
+
+        function toggleModal(show) {
+            archiveModal.classList.toggle('hidden', !show);
+            archiveModal.classList.toggle('flex', show);
+        }
+
+        function updateView() {
+            const type = document.getElementById('deviceType').value;
+            document.getElementById('greeSection').classList.toggle('hidden', type !== 'ac');
+            document.getElementById('panasonicSection').classList.toggle('hidden', type !== 'hp');
+            document.getElementById('boilerSection').classList.toggle('hidden', !(type === 'gas' || type === 'electric'));
+        }
+
+        function resizeCanvas(preserve = true) {
+            const oldData = preserve ? canvas.toDataURL() : null;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
+            ctx.lineWidth = 1.5;
+            ctx.lineCap = 'round';
+            ctx.strokeStyle = '#000';
+
+            if (oldData) {
+                const img = new Image();
+                img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                img.src = oldData;
+            }
+        }
+
+        function getPos(e) {
+            const rect = canvas.getBoundingClientRect();
+            const point = e.touches && e.touches[0] ? e.touches[0] : e;
+            return { x: point.clientX - rect.left, y: point.clientY - rect.top };
+        }
+
+        function startDraw(e) {
+            state.drawing = true;
+            const pos = getPos(e);
+            ctx.beginPath();
+            ctx.moveTo(pos.x, pos.y);
+            if (e.touches) e.preventDefault();
+        }
+
+        function moveDraw(e) {
+            if (!state.drawing) return;
+            const pos = getPos(e);
+            ctx.lineTo(pos.x, pos.y);
+            ctx.stroke();
+            if (e.touches) e.preventDefault();
+        }
+
+        function endDraw() {
+            state.drawing = false;
+        }
+
+        function clearSig() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+        }
+
+        async function saveToCloud() {
+            const pId = document.getElementById('protocolId').value.trim();
+            if (!pId) {
+                showToast('⚠️ Zadajte číslo!');
+                return;
+            }
+
+            const data = collectFormData();
+            const id = protocolDocId(pId);
+            showToast('💾 Ukladám...');
+
+            try {
+                const local = readLocalProtocols().filter((x) => x.id !== id);
+                local.push({ id, ...data });
+                writeLocalProtocols(local);
+
+                if (state.firebaseEnabled && state.user && state.db) {
+                    await saveToCloudInternal(data);
+                    showToast('✅ Uložené do cloudu');
+                } else {
+                    showToast('✅ Uložené lokálne');
+                }
+            } catch (error) {
+                console.error(error);
+                showToast('❌ Chyba pri ukladaní');
+            }
+        }
+
+        async function openArchive() {
+            toggleModal(true);
+            archiveList.innerHTML = '<div class="text-center py-10 uppercase text-[8px] tracking-widest text-slate-300">Načítavam...</div>';
+
+            try {
+                let items = readLocalProtocols();
+                if (state.firebaseEnabled && state.user && state.db) {
+                    const cloudItems = await readCloudProtocols();
+                    const map = new Map();
+                    [...items, ...cloudItems].forEach((item) => map.set(item.id, item));
+                    items = Array.from(map.values());
+                    writeLocalProtocols(items);
+                }
+                state.allProtocols = items;
+                renderArchive();
+            } catch (error) {
+                console.error(error);
+                state.allProtocols = readLocalProtocols();
+                renderArchive();
+                showToast('⚠️ Archív načítaný len lokálne');
+            }
+        }
+
+        function loadProtocol(id, asTemplate) {
+            const p = state.allProtocols.find((x) => x.id === id);
+            if (!p) return;
+
+            document.getElementById('deviceType').value = p.type || 'hp';
+            updateView();
+
+            Object.entries(p.content || {}).forEach(([k, v]) => {
+                const el = document.getElementById(k);
+                if (!el) return;
+                if (el.type === 'checkbox') el.checked = Boolean(v);
+                else el.value = v;
+            });
+
+            if (asTemplate) {
+                document.getElementById('protocolId').value = '';
+                document.getElementById('customer').value = '';
+                clearSig();
+                restorePhotos([]);
+            } else {
+                document.getElementById('protocolId').value = p.displayId || p.id;
+                clearSig();
+                restorePhotos(p.photos || []);
+                if (p.sig) {
+                    const img = new Image();
+                    img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                    img.src = p.sig;
+                }
+            }
+
+            toggleModal(false);
+        }
+
+        function runSelfTests() {
+            console.assert(hasValidFirebaseConfig({ apiKey: 'abc', projectId: 'demo' }) === true, 'Test failed: valid config should pass');
+            console.assert(hasValidFirebaseConfig({ apiKey: '', projectId: 'demo' }) === false, 'Test failed: empty apiKey should fail');
+            console.assert(hasValidFirebaseConfig({ apiKey: 'abc', projectId: '' }) === false, 'Test failed: empty projectId should fail');
+            console.assert(protocolDocId('SP-2026/001') === 'SP-2026-001', 'Test failed: protocol id slash replacement');
+            console.assert(Array.isArray(safeJsonParse('[1,2,3]', [])), 'Test failed: safeJsonParse should parse arrays');
+            console.assert(safeJsonParse('{bad json}', 123) === 123, 'Test failed: safeJsonParse fallback');
+            console.assert(Array.isArray(collectPhotos()), 'Test failed: collectPhotos should return array');
+            console.assert(document.querySelectorAll('#photoGrid .photo-slot').length === 4,
