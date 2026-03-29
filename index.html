@@ -28,7 +28,7 @@
         .data-table input { font-weight: 700; text-align: center; }
 
         .signature-line { border-top: 1px solid #000; width: 100%; text-align: center; font-size: 9px; font-weight: 700; padding-top: 3px; margin-top: auto;}
-        .signature-pad { border: 1px dashed #cbd5e1; background: #fafafa; width: 100%; height: 60px; touch-action: none; }
+        .signature-pad { border: 1px dashed #cbd5e1; background: #fafafa; width: 100%; height: 65px; touch-action: none; }
 
         /* Foto Grid - 1/8 strany v tlači */
         .photo-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 10px; margin-top: 10px; }
@@ -52,8 +52,8 @@
             .form-box { padding: 6px 8px !important; border-color: #000 !important; }
             .form-box h3 { font-size: 8.5pt !important; margin-bottom: 4px !important; border-bottom: 1px solid #000 !important; }
             
-            .data-table th, .data-table td { border-color: #000 !important; padding: 3px 5px !important; }
-            .section-title { font-size: 9pt !important; margin: 10px 0 4px 0 !important; }
+            .data-table th, .data-table td { border-color: #000 !important; padding: 2px 4px !important; }
+            .section-title { font-size: 9pt !important; margin: 8px 0 3px 0 !important; }
             
             /* Druhá strana pre fotky */
             .photo-section { page-break-before: always; margin-top: 10mm; }
@@ -76,19 +76,20 @@
 
     <div id="toast">Správa</div>
 
-    <div class="page-container max-w-[850px] mx-auto bg-white shadow-2xl p-6 md:p-10 min-h-screen border border-slate-200">
+    <div class="page-container max-w-[850px] mx-auto bg-white shadow-2xl p-6 md:p-10 min-h-screen border border-slate-200 flex flex-col">
         
         <!-- HLAVIČKA -->
-        <div class="flex flex-col md:flex-row justify-between items-end border-b-[3px] border-red-600 pb-2 mb-4 gap-4 print-header">
+        <div class="flex flex-col md:flex-row justify-between items-end border-b-[3px] border-red-600 pb-2 mb-4 gap-4 print-header break-inside-avoid">
             <div class="print-left">
                 <h1 class="text-3xl tracking-tighter uppercase font-black" style="font-family: 'Montserrat', sans-serif;">
                     <span class="text-black">SPEKTRA</span> <span class="text-red-600">INSTALL</span>
                 </h1>
                 <p class="text-[9px] text-slate-500 leading-tight">Hollého 210, 015 01 Rajec | IČO: 535690036</p>
+                <div id="authStatusContainer" class="mt-1 no-print"><div id="authBadge" class="flex items-center gap-1 text-[8px] font-bold text-slate-400">Pripájanie...</div></div>
             </div>
             
             <div class="print-center">
-                <select id="deviceSelector" onchange="updateDeviceView()" class="no-print border border-slate-300 rounded px-3 py-1 text-xs font-bold text-red-600 bg-slate-50 cursor-pointer">
+                <select id="deviceSelector" onchange="updateDeviceView()" class="no-print border border-slate-300 rounded px-3 py-1 text-xs font-bold text-red-600 bg-slate-50 cursor-pointer shadow-sm">
                     <option value="tc">Tepelné čerpadlo</option>
                     <option value="plyn">Plynový kotol</option>
                     <option value="elektro">Elektrický kotol</option>
@@ -106,9 +107,9 @@
             </div>
         </div>
 
-        <form id="protocolForm">
+        <form id="protocolForm" class="flex-grow flex flex-col">
             <!-- ÚDAJE O FIRME A ZÁKAZNÍKOVI -->
-            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 print-grid-2 break-inside-avoid">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-3 print-grid-2 break-inside-avoid">
                 <div class="form-box">
                     <h3>ZHOTOVITEĽ</h3>
                     <div class="form-row"><span>Spoločnosť:</span> <input type="text" id="inst_company" value="Spektra install s.r.o."></div>
@@ -123,7 +124,7 @@
                 </div>
             </div>
 
-            <!-- DYNAMICKÉ SEKCIE (TČ, PLYN, ELEKTRO, PEVNE) -->
+            <!-- DYNAMICKÉ SEKCIE -->
             <div id="section-tc" class="device-section active">
                 <div class="section-title">1. Údaje o zariadení (Tepelné čerpadlo)</div>
                 <table class="data-table">
@@ -157,45 +158,71 @@
                     <thead><tr><th>Kontrola</th><th>Namerané</th><th>Stav</th></tr></thead>
                     <tbody>
                         <tr><td>Tlak plynu na vstupe</td><td><input type="text" id="g_tlak" value="2.1 kPa"></td><td class="font-bold">Vyhovuje</td></tr>
-                        <tr><td>Koncentrácia CO2 (%)</td><td><input type="text" id="g_co2" value="9.2 %"></td><td class="font-bold">Vyhovuje</td></tr>
                     </tbody>
                 </table>
             </div>
 
-            <!-- ... ostatné sekcie analogicky ... -->
+            <div id="section-elektro" class="device-section">
+                <div class="section-title">1. Údaje o zariadení (Elektrokotol)</div>
+                <table class="data-table">
+                    <thead><tr><th>Zariadenie</th><th>Model</th><th>Sériové číslo</th></tr></thead>
+                    <tbody>
+                        <tr><td class="font-bold">Kotol</td><td><input type="text" id="model_el"></td><td><input type="text" id="sn_el"></td></tr>
+                    </tbody>
+                </table>
+            </div>
 
-            <!-- ZÁVER -->
+            <div id="section-pevne" class="device-section">
+                <div class="section-title">1. Údaje o zariadení (Pevné palivo)</div>
+                <table class="data-table">
+                    <thead><tr><th>Zariadenie</th><th>Model</th><th>Sériové číslo</th></tr></thead>
+                    <tbody>
+                        <tr><td class="font-bold">Kotol</td><td><input type="text" id="model_pevne"></td><td><input type="text" id="sn_pevne"></td></tr>
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- OSTATNÉ ZISTENIA -->
+            <div class="section-title">Ostatné zistenia / Poznámky</div>
+            <div class="border border-cbd5e1 bg-white p-2 mb-3">
+                <textarea id="notes" rows="2" class="w-full resize-none outline-none font-medium text-[10px]" placeholder="Pridajte poznámky k inštalácii..."></textarea>
+            </div>
+
+            <!-- ZÁVER A HODNOTENIE -->
             <div class="break-inside-avoid">
                 <div class="section-title">Celkové hodnotenie a záver</div>
-                <div class="border-2 border-green-600 py-2 text-center my-3 bg-green-50 font-bold uppercase text-[11px] text-green-700">
+                <p class="text-[10px] text-justify mb-2 leading-snug">
+                    Zariadenie bolo nainštalované v súlade s technickou dokumentáciou výrobcu a za dodržania platných technických a bezpečnostných predpisov. Po vykonaní komplexnej kontroly a úspešnej skúšobnej prevádzky v trvaní približne 2 hodín zariadenie nevykazuje žiadne prevádzkové chyby ani nedostatky a je plne funkčné pre bezpečnú prevádzku.
+                </p>
+                <div class="border-2 border-green-600 py-2 text-center my-2 bg-green-50 font-bold uppercase text-[11px] text-green-700">
                     Zariadenie je spôsobilé bezpečnej prevádzky
                 </div>
+            </div>
 
-                <!-- PODPISY -->
-                <div class="grid grid-cols-3 gap-8 mt-6 items-end">
-                    <div class="text-center">
-                        <div id="sig_date_display" class="font-bold text-xs mb-1">17.03.2026</div>
-                        <div class="signature-line">Dátum</div>
+            <!-- PODPISY (Na spodku hárku) -->
+            <div class="mt-auto grid grid-cols-3 gap-8 pt-4 pb-2 break-inside-avoid">
+                <div class="text-center flex flex-col justify-end">
+                    <div id="sig_date_display" class="font-bold text-xs mb-1">17.03.2026</div>
+                    <div class="signature-line">Dátum</div>
+                </div>
+                <div class="relative text-center flex flex-col items-center justify-end">
+                    <canvas id="customerSignature" class="signature-pad"></canvas>
+                    <button type="button" onclick="clearSignature()" class="no-print absolute -top-4 left-0 text-[8px] bg-slate-200 px-1">Zmazať</button>
+                    <div class="signature-line">Podpis zákazníka</div>
+                </div>
+                <div class="text-center flex flex-col items-center justify-end">
+                    <div class="h-[60px] flex items-center justify-center">
+                        <img src="Razitko a podpis.jpg" alt="Razítko" class="max-h-full mix-blend-multiply" onerror="this.style.display='none'">
                     </div>
-                    <div class="relative text-center flex flex-col items-center">
-                        <canvas id="customerSignature" class="signature-pad"></canvas>
-                        <button type="button" onclick="clearSignature()" class="no-print absolute -top-4 left-0 text-[8px] bg-slate-200 px-1">Zmazať</button>
-                        <div class="signature-line">Podpis zákazníka</div>
-                    </div>
-                    <div class="text-center flex flex-col items-center">
-                        <div class="h-[60px] flex items-center justify-center">
-                            <img src="Razitko a podpis.jpg" alt="Razítko" class="max-h-full mix-blend-multiply" onerror="this.style.display='none'">
-                        </div>
-                        <div class="signature-line">Technik (Spektra)</div>
-                    </div>
+                    <div class="signature-line">Technik (Spektra)</div>
                 </div>
             </div>
 
             <!-- FOTODOKUMENTÁCIA (Strana 2) -->
             <div class="photo-section break-inside-avoid">
                 <div class="section-title">3. Fotodokumentácia inštalácie</div>
-                <div class="no-print mb-4">
-                    <label class="cursor-pointer bg-slate-800 text-white px-4 py-2 rounded text-[10px] font-bold uppercase">
+                <div class="no-print mb-4 p-4 border-2 border-dashed border-red-100 bg-red-50 text-center rounded">
+                    <label class="cursor-pointer bg-slate-800 text-white px-6 py-2 rounded-full text-[10px] font-bold uppercase shadow-sm">
                         📸 Pridať fotografie (1/8 strany)
                         <input type="file" id="photoInput" accept="image/*" multiple class="hidden" onchange="handlePhotos(event)">
                     </label>
@@ -205,9 +232,9 @@
 
             <!-- AKCIE -->
             <div class="mt-12 no-print flex flex-wrap justify-center gap-4 border-t pt-6 pb-10">
-                <button type="button" id="btnSave" class="bg-black text-white px-6 py-3 rounded font-bold text-xs uppercase tracking-widest shadow-md">Uložiť do Cloudu</button>
-                <button type="button" id="btnPohoda" class="bg-blue-600 text-white px-6 py-3 rounded font-bold text-xs uppercase tracking-widest shadow-md">📊 Export pre POHODU</button>
-                <button type="button" onclick="window.print()" class="bg-red-600 text-white px-6 py-3 rounded font-bold text-xs uppercase tracking-widest shadow-md">🖨️ Tlačiť PDF</button>
+                <button type="button" id="btnSave" class="bg-black text-white px-6 py-3 rounded text-xs font-bold uppercase tracking-widest shadow-md">Uložiť do Cloudu</button>
+                <button type="button" id="btnPohoda" class="bg-blue-600 text-white px-6 py-3 rounded text-xs font-bold uppercase tracking-widest shadow-md">📊 Export pre POHODU</button>
+                <button type="button" onclick="window.print()" class="bg-red-600 text-white px-6 py-3 rounded text-xs font-bold uppercase tracking-widest shadow-md">🖨️ Tlačiť PDF</button>
             </div>
         </form>
     </div>
@@ -242,7 +269,7 @@
         // Signature
         const canvas = document.getElementById('customerSignature');
         const ctx = canvas.getContext('2d');
-        canvas.width = 200; canvas.height = 60;
+        canvas.width = 200; canvas.height = 65;
         let drawing = false;
         ctx.lineWidth = 2.5; ctx.lineCap = 'round';
         const getP = (e) => { const r = canvas.getBoundingClientRect(); return { x: (e.clientX || e.touches[0].clientX) - r.left, y: (e.clientY || e.touches[0].clientY) - r.top }; };
@@ -286,8 +313,9 @@
         // Firebase Save
         document.getElementById('btnSave').onclick = async () => {
             const pId = document.getElementById('protocolId').value;
+            const appId = 'spektra-install-app'; 
             const data = { photos: userPhotos, signature: canvas.toDataURL(), customer: document.getElementById('customer').value, ts: new Date().toISOString() };
-            try { await setDoc(doc(db, "protocols", pId), data); showToast("✅ Uložené v cloude!"); } catch(e) { alert("Chyba: " + e.message); }
+            try { await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'protocols', pId), data); showToast("✅ Uložené v cloude!"); } catch(e) { alert("Chyba: " + e.message); }
         };
 
         function showToast(m) { const t = document.getElementById('toast'); t.innerText = m; t.className = 'show'; setTimeout(() => t.className = '', 3000); }
@@ -301,7 +329,9 @@
             const [y, m, d] = e.target.value.split('-');
             document.getElementById('sig_date_display').innerText = `${d}.${m}.${y}`;
         };
-        signInAnonymously(auth);
+        signInAnonymously(auth).then(() => {
+            document.getElementById('authBadge').innerHTML = "🟢 Cloud aktívny";
+        });
     </script>
 </body>
 </html>
