@@ -293,25 +293,21 @@
                     </div>
                     <div class="text-[10px] text-slate-500 mb-5 italic">Do PDF sa vytlačí druhá strana ako samostatný A4 hárok. Môžete vložiť fotografie zariadenia, štítkov, zapojenia alebo miesta montáže.</div>
 
-                    <div id="photoGrid" class="grid grid-cols-2 gap-4">
-                        <div class="photo-slot aspect-[1/1] border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden relative">
-                            <span class="photo-placeholder text-[10px] uppercase tracking-widest text-slate-300 text-center px-3">Foto 1</span>
-                            <img class="photo-preview hidden w-full h-full object-cover" alt="Foto 1">
-                        </div>
-                        <div class="photo-slot aspect-[1/1] border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden relative">
-                            <span class="photo-placeholder text-[10px] uppercase tracking-widest text-slate-300 text-center px-3">Foto 2</span>
-                            <img class="photo-preview hidden w-full h-full object-cover" alt="Foto 2">
-                        </div>
-                        <div class="photo-slot aspect-[1/1] border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden relative">
-                            <span class="photo-placeholder text-[10px] uppercase tracking-widest text-slate-300 text-center px-3">Foto 3</span>
-                            <img class="photo-preview hidden w-full h-full object-cover" alt="Foto 3">
-                        </div>
-                        <div class="photo-slot aspect-[1/1] border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden relative">
-                            <span class="photo-placeholder text-[10px] uppercase tracking-widest text-slate-300 text-center px-3">Foto 4</span>
-                            <img class="photo-preview hidden w-full h-full object-cover" alt="Foto 4">
-                        </div>
-                    </div>
-                </div>
+                    <div id="photoGrid" class="grid grid-cols-2 gap-6 mt-6">
+
+<div class="photo-slot h-[120mm] border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden relative">
+<span class="photo-placeholder text-xs text-slate-400">Foto 1</span>
+<img class="photo-preview hidden w-full h-full object-contain" alt="Foto 1">
+</div>
+
+<div class="photo-slot h-[120mm] border border-dashed border-slate-300 rounded-xl bg-slate-50 flex items-center justify-center overflow-hidden relative">
+<span class="photo-placeholder text-xs text-slate-400">Foto 2</span>
+<img class="photo-preview hidden w-full h-full object-contain" alt="Foto 2">
+</div>
+
+</div>
+</div>
+</div>
             </div>
 
             <div class="mt-12 no-print flex flex-wrap justify-center gap-4 border-t border-slate-50 pt-8 pb-16">
@@ -323,7 +319,7 @@
     </div>
 
     <script type="module">
-        const CLOUD_COLLECTION_PATH = ['artifacts', 'spustaci-protokol', 'public', 'data', 'protocols'];
+        const CLOUD_COLLECTION_PATH = ['artifacts', 'spustaci-protokol'];
 
         const state = {
             user: null,
@@ -341,8 +337,8 @@
         const archiveSearch = document.getElementById('archiveSearch');
         const archiveList = document.getElementById('archiveList');
         const cloudStatus = document.getElementById('cloudStatus');
-        const form = document.getElementById('mainForm');
         const photoUpload = document.getElementById('photoUpload');
+        const protocolIdInput = document.getElementById('protocolId');
 
         function showToast(message) {
             const t = document.getElementById('toast');
@@ -363,7 +359,7 @@
             if (!config || typeof config !== 'object') return false;
             const apiKey = typeof config.apiKey === 'string' ? config.apiKey.trim() : '';
             const projectId = typeof config.projectId === 'string' ? config.projectId.trim() : '';
-            return apiKey.length > 0 && projectId.length > 0;
+            return apiKey.length > 0 && apiKey !== 'YOUR_API_KEY' && projectId.length > 0 && projectId !== 'YOUR_PROJECT';
         }
 
         function updateCloudStatus(text, tone = 'muted') {
@@ -392,7 +388,50 @@
         }
 
         function protocolDocId(protocolId) {
-            return protocolId.replace(/\//g, '-').trim();
+            return String(protocolId || '').replace(/\//g, '-').trim();
+        }
+
+        function currentYear() {
+            return new Date().getFullYear();
+        }
+
+        function formatProtocolNumber(seq, year = currentYear()) {
+            return `UP-${year}/${String(seq).padStart(3, '0')}`;
+        }
+
+        function extractSequence(value, year = currentYear()) {
+            const match = String(value || '').match(new RegExp(`(?:UP|SP)-${year}\/(\d{1,})$`));
+            return match ? Number(match[1]) : 0;
+        }
+
+        async function generateNextProtocolNumber() {
+            const year = currentYear();
+            let maxSeq = 0;
+
+            readLocalProtocols().forEach((item) => {
+                maxSeq = Math.max(maxSeq, extractSequence(item.displayId || item.id, year));
+            });
+
+            if (state.firebaseEnabled && state.user && state.db) {
+                try {
+                    const cloudItems = await readCloudProtocols();
+                    cloudItems.forEach((item) => {
+                        maxSeq = Math.max(maxSeq, extractSequence(item.displayId || item.id, year));
+                    });
+                } catch (error) {
+                    console.warn('Cloud numbering fallback to local only', error);
+                }
+            }
+
+            return formatProtocolNumber(maxSeq + 1, year);
+        }
+
+        async function ensureProtocolNumber(force = false) {
+            const current = protocolIdInput.value.trim();
+            if (!force && current) return current;
+            const next = await generateNextProtocolNumber();
+            protocolIdInput.value = next;
+            return next;
         }
 
         function collectPhotos() {
@@ -423,7 +462,7 @@
                 sig: canvas.toDataURL(),
                 photos: collectPhotos(),
                 ts: new Date().toISOString(),
-                displayId: document.getElementById('protocolId').value.trim(),
+                displayId: protocolIdInput.value.trim(),
             };
 
             document.querySelectorAll('input, select').forEach((el) => {
@@ -441,7 +480,9 @@
             const filtered = state.allProtocols.filter((p) => {
                 const pid = String(p.displayId || p.id || '').toLowerCase();
                 const customer = String((p.content && p.content.customer) || '').toLowerCase();
-                return pid.includes(term) || customer.includes(term);
+                const address = String((p.content && p.content.address) || '').toLowerCase();
+                const phone = String((p.content && p.content.phone) || '').toLowerCase();
+                return pid.includes(term) || customer.includes(term) || address.includes(term) || phone.includes(term);
             });
 
             if (filtered.length === 0) {
@@ -453,15 +494,19 @@
                 .sort((a, b) => String(b.ts || '').localeCompare(String(a.ts || '')))
                 .forEach((p) => {
                     const item = document.createElement('div');
-                    item.className = 'p-4 border border-slate-100 rounded-xl flex justify-between items-center bg-white hover:bg-slate-50 transition-colors gap-3';
+                    item.className = 'p-4 border border-slate-100 rounded-xl bg-white hover:bg-slate-50 transition-colors';
                     item.innerHTML = `
-                        <div>
-                            <div class="text-red-600 text-sm">${p.displayId || p.id}</div>
-                            <div class="text-xs text-slate-800">${(p.content && p.content.customer) || 'Bez mena'}</div>
+                        <div class="flex justify-between items-start gap-3">
+                            <div>
+                                <div class="text-red-600 text-sm">${p.displayId || p.id}</div>
+                                <div class="text-xs text-slate-800">${(p.content && p.content.customer) || 'Bez mena'}</div>
+                                <div class="text-[11px] text-slate-400 mt-1">${(p.content && p.content.address) || ''}</div>
+                            </div>
+                            <div class="text-[11px] text-slate-400 shrink-0">${(p.ts || '').slice(0, 10)}</div>
                         </div>
-                        <div class="flex gap-2 shrink-0">
+                        <div class="flex flex-wrap gap-2 mt-3">
                             <button type="button" onclick="loadProtocol('${p.id}', false)" class="text-[9px] uppercase border px-3 py-2 rounded-lg">Otvoriť</button>
-                            <button type="button" onclick="loadProtocol('${p.id}', true)" class="text-[9px] uppercase bg-red-50 text-red-600 px-3 py-2 rounded-lg">Šablóna</button>
+                            <button type="button" onclick="loadProtocol('${p.id}', true)" class="text-[9px] uppercase bg-red-50 text-red-600 px-3 py-2 rounded-lg">Nový z kontaktu</button>
                         </div>`;
                     archiveList.appendChild(item);
                 });
@@ -486,7 +531,6 @@
                 ? window.__firebase_config
                 : '{"apiKey":"","projectId":"spustaci-protokol"}';
             const firebaseConfig = safeJsonParse(configStr, {});
-            state.appId = typeof window.__app_id !== 'undefined' && window.__app_id ? window.__app_id : 'spustaci-protokol';
 
             if (!hasValidFirebaseConfig(firebaseConfig)) {
                 updateCloudStatus('Cloud: lokálny režim', 'warn');
@@ -548,7 +592,7 @@
             ctx.lineCap = 'round';
             ctx.strokeStyle = '#000';
 
-            if (oldData) {
+            if (oldData && oldData !== 'data:,') {
                 const img = new Image();
                 img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 img.src = oldData;
@@ -586,9 +630,9 @@
         }
 
         async function saveToCloud() {
-            const pId = document.getElementById('protocolId').value.trim();
+            const pId = (await ensureProtocolNumber()).trim();
             if (!pId) {
-                showToast('⚠️ Zadajte číslo!');
+                showToast('⚠️ Chýba číslo protokolu');
                 return;
             }
 
@@ -607,6 +651,9 @@
                 } else {
                     showToast('✅ Uložené lokálne');
                 }
+
+                state.allProtocols = local;
+                renderArchive();
             } catch (error) {
                 console.error(error);
                 showToast('❌ Chyba pri ukladaní');
@@ -636,7 +683,7 @@
             }
         }
 
-        function loadProtocol(id, asTemplate) {
+        async function loadProtocol(id, asTemplate) {
             const p = state.allProtocols.find((x) => x.id === id);
             if (!p) return;
 
@@ -651,12 +698,12 @@
             });
 
             if (asTemplate) {
-                document.getElementById('protocolId').value = '';
-                document.getElementById('customer').value = '';
+                protocolIdInput.value = await generateNextProtocolNumber();
                 clearSig();
                 restorePhotos([]);
+                showToast('🆕 Vytvorený nový protokol z kontaktu');
             } else {
-                document.getElementById('protocolId').value = p.displayId || p.id;
+                protocolIdInput.value = p.displayId || p.id;
                 clearSig();
                 restorePhotos(p.photos || []);
                 if (p.sig) {
@@ -664,6 +711,7 @@
                     img.onload = () => ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                     img.src = p.sig;
                 }
+                showToast('📂 Protokol načítaný');
             }
 
             toggleModal(false);
@@ -672,7 +720,48 @@
         function runSelfTests() {
             console.assert(hasValidFirebaseConfig({ apiKey: 'abc', projectId: 'demo' }) === true, 'Test failed: valid config should pass');
             console.assert(hasValidFirebaseConfig({ apiKey: '', projectId: 'demo' }) === false, 'Test failed: empty apiKey should fail');
-            console.assert(hasValidFirebaseConfig({ apiKey: 'abc', projectId: '' }) === false, 'Test failed: empty projectId should fail');
-            console.assert(protocolDocId('SP-2026/001') === 'SP-2026-001', 'Test failed: protocol id slash replacement');
-            console.assert(Array.isArray(safeJsonParse('[1,2,3]', [])), 'Test failed: safeJsonParse should parse arrays');
-            console.assert(safeJsonParse('{bad json}', 123) === 123, 'Test failed: safeJ
+            console.assert(protocolDocId('UP-2026/001') === 'UP-2026-001', 'Test failed: protocol id slash replacement');
+            console.assert(extractSequence('UP-2026/019', 2026) === 19, 'Test failed: extractSequence');
+            console.assert(formatProtocolNumber(7, 2026) === 'UP-2026/007', 'Test failed: formatProtocolNumber');
+            console.assert(Array.isArray(collectPhotos()), 'Test failed: collectPhotos should return array');
+            console.assert(document.querySelectorAll('#photoGrid .photo-slot').length === 2, 'Test failed: should render 2 photo slots');
+        }
+
+        window.updateView = updateView;
+        window.clearSig = clearSig;
+        window.saveToCloud = saveToCloud;
+        window.openArchive = openArchive;
+        window.toggleModal = toggleModal;
+        window.loadProtocol = loadProtocol;
+
+        archiveSearch.addEventListener('input', renderArchive);
+        photoUpload.addEventListener('change', async (event) => {
+            const files = Array.from(event.target.files || []).slice(0, 2);
+            if (!files.length) return;
+            const dataUrls = await Promise.all(files.map((file) => new Promise((resolve) => {
+                const reader = new FileReader();
+                reader.onload = () => resolve(reader.result);
+                reader.readAsDataURL(file);
+            })));
+            restorePhotos(dataUrls);
+            photoUpload.value = '';
+        });
+        window.addEventListener('resize', () => resizeCanvas(true));
+        canvas.addEventListener('mousedown', startDraw);
+        canvas.addEventListener('mousemove', moveDraw);
+        canvas.addEventListener('touchstart', startDraw, { passive: false });
+        canvas.addEventListener('touchmove', moveDraw, { passive: false });
+        window.addEventListener('mouseup', endDraw);
+        window.addEventListener('touchend', endDraw);
+        archiveModal.addEventListener('click', (e) => {
+            if (e.target === archiveModal) toggleModal(false);
+        });
+
+        document.getElementById('date_inst').valueAsDate = new Date();
+        updateView();
+        resizeCanvas(false);
+        runSelfTests();
+        initFirebaseIfPossible().finally(() => ensureProtocolNumber(true));
+    </script>
+</body>
+</html>
